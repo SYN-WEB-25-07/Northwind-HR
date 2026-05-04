@@ -39,13 +39,12 @@ Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`p
 
 ## 📁 Projektstruktur
 
-\`\`\`
 Northwind-HR/
 ├── docker-compose.yml            # Container‑Orchestrierung
 ├── package.json                  # Root‑Workspace‑Definition
 ├── .env                          # Umgebungsvariablen (DB‑Credentials, Ports)
 ├── db/
-│   └── init/                     # SQL‑Dateien für die Erstinitialisierung (Dump wird durch Nutzer ergänzt)
+│   └── init/                     # SQL‑Dateien für die Erstinitialisierung
 ├── packages/
 │   ├── backend/                  # Express‑Server
 │   │   ├── Dockerfile
@@ -56,13 +55,12 @@ Northwind-HR/
 │   │       ├── db.ts             # PostgreSQL‑Pool
 │   │       └── routes/
 │   │           ├── employees.ts  # Mitarbeiter‑Routen mit Pagination
-│   │           └── reports.ts    # Analytics‑Routen (Headcount, Gehaltsverteilung)
+│   │           └── reports.ts    # Analytics‑Routen
 │   └── shared/                   # Geteilte TypeScript‑Typen
 │       ├── package.json
 │       └── src/
 │           └── types.ts          # Employee, HeadCountRow, SalaryDistRow
 └── README.md
-\`\`\`
 
 ---
 
