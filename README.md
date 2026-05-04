@@ -7,7 +7,7 @@
 
 Interne HR‑Analyseplattform für die Personalabteilung von Northwind Industries. Historische Mitarbeiterdaten systematisch auswerten – ohne direkte Arbeit mit Rohdaten.
 
-
+---
 
 ## 🔌 API‑Endpunkte
 
@@ -21,7 +21,7 @@ Interne HR‑Analyseplattform für die Personalabteilung von Northwind Industrie
 
 Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`page`, `limit`, `total`, `pages`).
 
-
+---
 
 ## 🧱 Technologie‑Stack
 
@@ -35,15 +35,17 @@ Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`p
 | **Datenimport** | Automatisch via `docker-entrypoint-initdb.d` |
 | **Linting / Formatting** | Vorbereitet für ESLint + Prettier (optional) |
 
-
+---
 
 ## 📁 Projektstruktur
+
+\`\`\`
 Northwind-HR/
 ├── docker-compose.yml            # Container‑Orchestrierung
 ├── package.json                  # Root‑Workspace‑Definition
 ├── .env                          # Umgebungsvariablen (DB‑Credentials, Ports)
 ├── db/
-│   └── init/                     # SQL‑Dateien für die Erstinitialisierung (leer, Dump wird durch Nutzer ergänzt)
+│   └── init/                     # SQL‑Dateien für die Erstinitialisierung (Dump wird durch Nutzer ergänzt)
 ├── packages/
 │   ├── backend/                  # Express‑Server
 │   │   ├── Dockerfile
@@ -60,13 +62,26 @@ Northwind-HR/
 │       └── src/
 │           └── types.ts          # Employee, HeadCountRow, SalaryDistRow
 └── README.md
+\`\`\`
 
-
+---
 
 ## 🧪 Entwicklung & weitere Befehle
 
 - **Backend lokal entwickeln (ohne Docker)**  
-  Voraussetzung: PostgreSQL läuft unter `DB_HOST=localhost`.
-  ```bash
+  Voraussetzung: PostgreSQL läuft unter `DB_HOST=localhost`.  
+  \`\`\`bash
   npm install
   npm run dev -w @northwind/backend
+  \`\`\`
+
+- **Docker‑Container stoppen**
+  \`\`\`bash
+  docker compose down
+  \`\`\`
+
+- **Datenbank zurücksetzen und neu importieren**
+  \`\`\`bash
+  docker compose down -v
+  docker compose up -d
+  \`\`\`
