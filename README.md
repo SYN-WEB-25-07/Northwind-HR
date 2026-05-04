@@ -37,8 +37,6 @@ Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`p
 
 ---
 
-## 📁 Projektstruktur
-
 Northwind-HR/
 ├── docker-compose.yml            # Container‑Orchestrierung
 ├── package.json                  # Root‑Workspace‑Definition
