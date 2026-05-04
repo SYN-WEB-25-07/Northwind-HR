@@ -36,7 +36,7 @@ Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`p
 | **Linting / Formatting** | Vorbereitet für ESLint + Prettier (optional) |
 
 ---
-
+## 📁 Projektstruktur
 <pre>
 Northwind-HR/
 ├── docker-compose.yml # Container-Orchestrierung
