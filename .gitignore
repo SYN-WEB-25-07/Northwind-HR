@@ -3,3 +3,5 @@ node_modules/
 dist/
 pgdata/
 db/init/employees.sql
+employees.sql
+employees.sql
