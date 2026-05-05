@@ -98,3 +98,7 @@ Northwind-HR/
   docker compose down -v
   docker compose up -d
 
+---
+
+## 📘 API-Dokumentation
+Importiere die [Postman Collection](docs/Northwind-HR-API.postman_collection.json) in Postman, um alle Endpunkte interaktiv zu testen.
