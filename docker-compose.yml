@@ -11,7 +11,9 @@ services:
       - "5432:5432"
 
   backend:
-    build: ./packages/backend
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: hr_backend
     restart: unless-stopped
     env_file: .env
