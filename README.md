@@ -88,18 +88,13 @@ Northwind-HR/
 
 - **Backend lokal entwickeln (ohne Docker)**  
   Voraussetzung: PostgreSQL läuft unter `DB_HOST=localhost`.  
-  \`\`\`bash
   npm install
   npm run dev -w @northwind/backend
-  \`\`\`
 
 - **Docker‑Container stoppen**
-  \`\`\`bash
   docker compose down
-  \`\`\`
 
 - **Datenbank zurücksetzen und neu importieren**
-  \`\`\`bash
   docker compose down -v
   docker compose up -d
-  \`\`\`
+
