@@ -1,2 +1,3 @@
 [build]
 dockerfilePath = "packages/backend/Dockerfile"
+context = "packages/backend"
