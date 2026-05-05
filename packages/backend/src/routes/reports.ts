@@ -47,3 +47,41 @@ router.get('/salary-distribution', async (req, res) => {
 });
 
 export default router;
+
+// GET /api/reports/gender-distribution
+router.get('/gender-distribution', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT gender, COUNT(*) AS count
+      FROM employees.employee
+      GROUP BY gender
+      ORDER BY count DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// GET /api/reports/department-salary-avg
+router.get('/department-salary-avg', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT d.dept_name,
+             ROUND(AVG(s.amount), 2) AS avg_salary,
+             COUNT(*) AS employee_count
+      FROM employees.department d
+      JOIN employees.department_employee de
+        ON d.id = de.department_id AND de.to_date = '9999-01-01'
+      JOIN employees.salary s
+        ON de.employee_id = s.employee_id AND s.to_date = '9999-01-01'
+      GROUP BY d.dept_name
+      ORDER BY avg_salary DESC
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});

@@ -53,6 +53,31 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/employees/top-paid – Top 10 Gehälter
+router.get('/top-paid', async (req, res) => {
+  try {
+    const { rows } = await pool.query(`
+      SELECT e.id, e.first_name, e.last_name, s.amount AS salary,
+             t.title, d.dept_name
+      FROM employees.employee e
+      JOIN employees.salary s
+        ON e.id = s.employee_id AND s.to_date = '9999-01-01'
+      JOIN employees.title t
+        ON e.id = t.employee_id AND t.to_date = '9999-01-01'
+      JOIN employees.department_employee de
+        ON e.id = de.employee_id AND de.to_date = '9999-01-01'
+      JOIN employees.department d
+        ON de.department_id = d.id
+      ORDER BY s.amount DESC
+      LIMIT 10
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // GET /api/employees/:id – Einzeldetail
 router.get('/:id', async (req, res) => {
   try {
