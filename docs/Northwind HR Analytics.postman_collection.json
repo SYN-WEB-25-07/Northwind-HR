@@ -1,0 +1,196 @@
+{
+  "info": {
+    "_postman_id": "e1399e98-538c-430e-b071-2f01d58a8eae",
+    "name": "Northwind HR Analytics",
+    "description": "API der internen HR‑Plattform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54155218",
+    "_collection_link": "https://go.postman.co/collection/54155218-e1399e98-538c-430e-b071-2f01d58a8eae?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "health"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mitarbeiterliste",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/employees?page=1&limit=20&dept=Development",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "employees"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            },
+            {
+              "key": "dept",
+              "value": "Development"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Mitarbeiter Detail",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/employees/10001",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "10001"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Headcount Report",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/reports/headcount",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "headcount"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Salary Distribution",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/reports/salary-distribution",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "salary-distribution"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Gender Distribution",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/reports/gender-distribution",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "gender-distribution"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Department Salary Avg",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/reports/department-salary-avg",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "reports",
+            "department-salary-avg"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Top Paid Employees",
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/employees/top-paid",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "employees",
+            "top-paid"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
