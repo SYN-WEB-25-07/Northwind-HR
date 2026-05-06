@@ -48,62 +48,36 @@ Alle Antworten sind JSON. Paginierte Endpunkte liefern zusätzlich Metadaten (`p
 
 ## 📁 Projektstruktur
 
-\`\`\`
-Northwind-HR/
-├── docker-compose.yml
-├── Dockerfile
-├── package.json
-├── .env
-├── db/
-│   └── init/
-│       └── 01-dummy-data.sql      # Lokales Init‑Skript (50 Mitarbeiter)
-├── docs/
-│   └── Northwind-HR-API.postman_collection.json
-├── packages/
-│   ├── backend/
-│   │   ├── Dockerfile (optional, für lokales Bauen)
-│   │   ├── package.json
-│   │   ├── tsconfig.json
-│   │   └── src/
-│   │       ├── server.ts
-│   │       ├── db.ts
-│   │       └── routes/
-│   │           ├── employees.ts
-│   │           └── reports.ts
-│   └── shared/
-│       ├── package.json
-│       └── src/
-│           └── types.ts
-└── README.md
-\`\`\`
+- **`docker-compose.yml`** – Docker Compose Konfiguration
+- **`Dockerfile`** – Build-Kontext für Railway & lokalen Build
+- **`package.json`** – Root-Workspace & Skripte
+- **`.env`** – Umgebungsvariablen (DB-Credentials)
+- **`db/init/01-dummy-data.sql`** – 50 Beispiel-Mitarbeiter (lokal)
+- **`docs/`** – Postman-Dokumentation
+- **`packages/backend/`** – Express-Server
+  - `server.ts` – Express-App & Middleware
+  - `db.ts` – PostgreSQL-Verbindungspool
+  - `routes/employees.ts` – Routen für Mitarbeiter & Top-Paid
+  - `routes/reports.ts` – Routen für Headcount, Gehaltsverteilung etc.
+- **`packages/shared/`** – Geteilte TypeScript-Typen
+  - `types.ts` – Employee, HeadCountRow, SalaryDistRow
+
+
 
 ## 🧪 Entwicklung & weitere Befehle
 
 - **Lokal mit Docker starten**
-  \`\`\`bash
   docker compose up -d
-  \`\`\`
   Beim ersten Start werden automatisch 50 Beispiel‑Mitarbeiter importiert.
 
 - **Docker‑Container stoppen**
-  \`\`\`bash
   docker compose down
-  \`\`\`
 
 - **Datenbank zurücksetzen und neu importieren**
-  \`\`\`bash
   docker compose down -v
   docker compose up -d
-  \`\`\`
 
 - **Backend lokal entwickeln (ohne Docker)**
   Voraussetzung: PostgreSQL läuft unter `DB_HOST=localhost`.
-  \`\`\`bash
   npm install
   npm run dev -w @northwind/backend
-  \`\`\`
-
-## 📝 Lizenz
-
-Dieses Projekt ist unter der MIT‑Lizenz veröffentlicht.  
-Der verwendete Employees‑Datensatz (h8/employees-database) steht unter der [Creative Commons Attribution-Share Alike 3.0](http://creativecommons.org/licenses/by-sa/3.0/)-Lizenz.
