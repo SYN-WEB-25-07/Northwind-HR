@@ -13,4 +13,4 @@ app.use('/api/reports', reportsRouter);
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.BACKEND_PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 HR Analytics Server active on port ${PORT}`));
