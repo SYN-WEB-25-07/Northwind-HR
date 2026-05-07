@@ -44,12 +44,7 @@ router.get('/', async (req, res) => {
 
     res.json({
       data: rows,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
-      }
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
     });
   } catch (err) {
     console.error(err);
@@ -57,23 +52,18 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/employees/top-paid
+// GET /api/employees/top-paid – ❗ MUSS VOR /:id STEHEN
 router.get('/top-paid', async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT e.id, e.first_name, e.last_name, s.amount AS salary,
              t.title, d.dept_name
       FROM employees.employee e
-      JOIN employees.salary s
-        ON e.id = s.employee_id AND s.to_date = '9999-01-01'
-      JOIN employees.title t
-        ON e.id = t.employee_id AND t.to_date = '9999-01-01'
-      JOIN employees.department_employee de
-        ON e.id = de.employee_id AND de.to_date = '9999-01-01'
-      JOIN employees.department d
-        ON de.department_id = d.id
-      ORDER BY s.amount DESC
-      LIMIT 10
+      JOIN employees.salary s ON e.id = s.employee_id AND s.to_date = '9999-01-01'
+      JOIN employees.title t ON e.id = t.employee_id AND t.to_date = '9999-01-01'
+      JOIN employees.department_employee de ON e.id = de.employee_id AND de.to_date = '9999-01-01'
+      JOIN employees.department d ON de.department_id = d.id
+      ORDER BY s.amount DESC LIMIT 10
     `);
     res.json(rows);
   } catch (err) {
@@ -82,11 +72,10 @@ router.get('/top-paid', async (req, res) => {
   }
 });
 
-// GET /api/employees/:id
+// GET /api/employees/:id – Einzeldetail
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
     const { rows } = await pool.query(
       `SELECT e.id,
               e.first_name || ' ' || e.last_name AS "fullName",
@@ -96,22 +85,14 @@ router.get('/:id', async (req, res) => {
               t.title AS "role",
               d.dept_name AS "department"
        FROM employees.employee e
-       LEFT JOIN employees.salary s
-         ON e.id = s.employee_id AND s.to_date = '9999-01-01'
-       LEFT JOIN employees.title t
-         ON e.id = t.employee_id AND t.to_date = '9999-01-01'
-       LEFT JOIN employees.department_employee de
-         ON e.id = de.employee_id AND de.to_date = '9999-01-01'
-       LEFT JOIN employees.department d
-         ON de.department_id = d.id
+       LEFT JOIN employees.salary s ON e.id = s.employee_id AND s.to_date = '9999-01-01'
+       LEFT JOIN employees.title t ON e.id = t.employee_id AND t.to_date = '9999-01-01'
+       LEFT JOIN employees.department_employee de ON e.id = de.employee_id AND de.to_date = '9999-01-01'
+       LEFT JOIN employees.department d ON de.department_id = d.id
        WHERE e.id = $1`,
       [id]
     );
-
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Not found' });
-    }
-
+    if (rows.length === 0) return res.status(404).json({ error: 'Not found' });
     res.json(rows[0]);
   } catch (err) {
     console.error(err);
