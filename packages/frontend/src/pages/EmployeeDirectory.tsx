@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { loadEmployeesPage } from '../api/employees';
-import type { Employee } from '../api/employees';
 import EmployeeTable from '../components/EmployeeTable';
 import FiltersSidebar from '../components/FiltersSidebar';
 import { departmentFilters, directoryEmployees } from '../data/fallbackEmployees';
@@ -10,20 +9,12 @@ const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
 const defaultSelectedDepartments: string[] = [];
 
-const mapEmployeeToRow = (emp: Employee): EmployeeDirectoryEntry => ({
-  fullName: emp.fullName,
-  role: emp.role,
-  department: emp.department,
-});
-
 export default function EmployeeDirectoryPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
-  const [rows, setRows] = useState<EmployeeDirectoryEntry[]>(useBackendData ? [] : directoryEmployees);
-  const [totalEmployees, setTotalEmployees] = useState(useBackendData ? 0 : directoryEmployees.length);
-  const [serverPages, setServerPages] = useState(
-    useBackendData ? 1 : Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage))
-  );
+  const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [serverPages, setServerPages] = useState(1);
   const [isUsingFallbackData, setIsUsingFallbackData] = useState(!useBackendData);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(useBackendData);
@@ -31,32 +22,33 @@ export default function EmployeeDirectoryPage() {
 
   useEffect(() => {
     if (!useBackendData) return;
+
     const controller = new AbortController();
+
     const run = async () => {
       setIsLoading(true);
       try {
         const payload = await loadEmployeesPage({ page, limit: rowsPerPage, signal: controller.signal });
+
         if (payload.total === 0 || payload.rows.length === 0) {
-          setRows(directoryEmployees);
+          setRows(directoryEmployees as any);
           setTotalEmployees(directoryEmployees.length);
-          setServerPages(Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage)));
-          setPage(1);
+          setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
           setErrorMessage('Keine Daten aus Postgres erhalten. Fallback-Daten aktiv.');
           return;
         }
-        setRows(payload.rows.map(mapEmployeeToRow));
+
+        setRows(payload.rows as EmployeeDirectoryEntry[]);
         setTotalEmployees(payload.total);
         setServerPages(payload.pages);
-        setPage(payload.page);
         setIsUsingFallbackData(false);
         setErrorMessage(null);
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          setRows(directoryEmployees);
+          setRows(directoryEmployees as any);
           setTotalEmployees(directoryEmployees.length);
-          setServerPages(Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage)));
-          setPage(1);
+          setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
           setErrorMessage('Postgres nicht erreichbar. Fallback-Daten aktiv.');
         }
@@ -64,6 +56,7 @@ export default function EmployeeDirectoryPage() {
         setIsLoading(false);
       }
     };
+
     void run();
     return () => controller.abort();
   }, [page]);
@@ -74,7 +67,8 @@ export default function EmployeeDirectoryPage() {
       const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(emp.department ?? '');
       if (!matchesDept) return false;
       if (!q) return true;
-      return emp.fullName?.toLowerCase().includes(q) || emp.role?.toLowerCase().includes(q) || emp.department?.toLowerCase().includes(q);
+      const fn = emp.fullName || `${emp.first_name} ${emp.last_name}`;
+      return fn.toLowerCase().includes(q) || emp.role?.toLowerCase().includes(q);
     });
   }, [rows, searchQuery, selectedDepartments]);
 
