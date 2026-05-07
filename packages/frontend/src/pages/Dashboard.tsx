@@ -26,22 +26,17 @@ export default function Dashboard() {
       fetchGenderDistribution(),
       fetchDeptSalaryAvg(),
     ])
-      .then(([h, s, g, d]) => {
-        setHeadcount(h);
-        setSalaryDist(s);
-        setGenderDist(g);
-        setDeptAvg(d);
-      })
+      .then(([h, s, g, d]) => { setHeadcount(h); setSalaryDist(s); setGenderDist(g); setDeptAvg(d); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-8 text-center">Dashboard wird geladen…</div>;
+  if (loading) return <p style={{ padding: 20 }}>Dashboard wird geladen …</p>;
 
   return (
-    <div className="dashboard-grid">
-      <section className="card">
-        <h2>Mitarbeiter pro Abteilung</h2>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', padding: '1.5rem' }}>
+      <div className="filters-card">
+        <h2 style={{ marginBottom: '1rem' }}>Mitarbeiter pro Abteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={headcount}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -51,9 +46,9 @@ export default function Dashboard() {
             <Bar dataKey="headcount" fill="#8884d8" />
           </BarChart>
         </ResponsiveContainer>
-      </section>
-      <section className="card">
-        <h2>Gehaltsverteilung</h2>
+      </div>
+      <div className="filters-card">
+        <h2 style={{ marginBottom: '1rem' }}>Gehaltsverteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={salaryDist} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={100} label>
@@ -62,9 +57,9 @@ export default function Dashboard() {
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
-      </section>
-      <section className="card">
-        <h2>Gender-Verteilung</h2>
+      </div>
+      <div className="filters-card">
+        <h2 style={{ marginBottom: '1rem' }}>Gender-Verteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={genderDist} dataKey="count" nameKey="gender" cx="50%" cy="50%" outerRadius={100} label>
@@ -73,9 +68,9 @@ export default function Dashboard() {
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
-      </section>
-      <section className="card">
-        <h2>Durchschnittsgehalt pro Abteilung</h2>
+      </div>
+      <div className="filters-card">
+        <h2 style={{ marginBottom: '1rem' }}>Durchschnittsgehalt pro Abteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={deptAvg}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -85,7 +80,7 @@ export default function Dashboard() {
             <Bar dataKey="avg_salary" fill="#82ca9d" />
           </BarChart>
         </ResponsiveContainer>
-      </section>
+      </div>
     </div>
   );
 }
