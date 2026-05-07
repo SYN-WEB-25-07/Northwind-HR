@@ -15,7 +15,6 @@ interface DeptFilter {
 }
 
 export default function EmployeeDirectoryPage() {
-  const [departments, setDepartments] = useState<DeptFilter[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
@@ -26,31 +25,7 @@ export default function EmployeeDirectoryPage() {
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Dynamische Abteilungsliste von der API holen
-  useEffect(() => {
-    fetch('/api/reports/headcount')
-      .then(r => r.json())
-      .then((data: any[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          setDepartments(data.map((d: any) => ({ key: d.dept_name, label: d.dept_name })));
-        }
-      })
-      .catch(() => {
-        // Fallback, falls die API nicht erreichbar ist
-        setDepartments([
-          { key: 'Development', label: 'Development' },
-          { key: 'Production', label: 'Production' },
-          { key: 'Sales', label: 'Sales' },
-          { key: 'Human Resources', label: 'Human Resources' },
-          { key: 'Research', label: 'Research' },
-          { key: 'Quality Management', label: 'Quality Management' },
-          { key: 'Marketing', label: 'Marketing' },
-          { key: 'Finance', label: 'Finance' },
-          { key: 'Customer Service', label: 'Customer Service' },
-        ]);
-      });
-  }, []);
-
+  // ---- Daten laden ----
   useEffect(() => {
     if (!useBackendData) return;
 
@@ -70,7 +45,7 @@ export default function EmployeeDirectoryPage() {
           return;
         }
 
-        // Normalisiere die Felder, damit der Filter sicher funktioniert
+        // Daten normalisieren: department und fullName immer vorhanden
         const normalizedRows = payload.rows.map((emp: any) => ({
           ...emp,
           fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
@@ -99,12 +74,24 @@ export default function EmployeeDirectoryPage() {
     return () => controller.abort();
   }, [page]);
 
+  // ---- Abteilungen aus den geladenen Daten extrahieren ----
+  const departments: DeptFilter[] = useMemo(() => {
+    const deptSet = new Set<string>();
+    rows.forEach((r) => {
+      const d = r.department || r.dept_name || '';
+      if (d) deptSet.add(d);
+    });
+    return Array.from(deptSet).sort().map((d) => ({ key: d, label: d }));
+  }, [rows]);
+
+  // ---- Gefilterte Liste ----
   const visibleEmployees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return rows.filter(emp => {
-      const dept = emp.department || '';
-      const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(dept);
-      if (!matchesDept) return false;
+      const dept = emp.department || emp.dept_name || '';
+      if (selectedDepartments.length > 0 && !selectedDepartments.includes(dept)) {
+        return false;
+      }
       if (!q) return true;
       const fn = emp.fullName || '';
       return fn.toLowerCase().includes(q) || (emp.role || '').toLowerCase().includes(q);
