@@ -7,17 +7,23 @@ import type { EmployeeDirectoryEntry } from '../types/employee';
 
 const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
-const defaultSelectedDepartments: string[] = [];
+const defaultSelectedDepartment = '';
 
-interface DeptFilter {
-  key: string;
-  label: string;
-}
+
+const departmentList = [
+  { key: 'Development', label: 'Development' },
+  { key: 'Production', label: 'Production' },
+  { key: 'Sales', label: 'Sales' },
+  { key: 'Human Resources', label: 'Human Resources' },
+  { key: 'Research', label: 'Research' },
+  { key: 'Quality Management', label: 'Quality Management' },
+  { key: 'Marketing', label: 'Marketing' },
+  { key: 'Finance', label: 'Finance' },
+  { key: 'Customer Service', label: 'Customer Service' },
+];
 
 export default function EmployeeDirectoryPage() {
-  const [allDepartments, setAllDepartments] = useState<DeptFilter[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
+  const [selectedDepartment, setSelectedDepartment] = useState(defaultSelectedDepartment);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [serverPages, setServerPages] = useState(1);
@@ -26,36 +32,6 @@ export default function EmployeeDirectoryPage() {
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Abteilungen aus Headcount-API laden (zuverlässig und vollständig)
-  useEffect(() => {
-    fetch('/api/reports/headcount')
-      .then(r => r.json())
-      .then((data: any[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const departments = data.map((d: any) => ({
-            key: d.dept_name,
-            label: d.dept_name,
-          }));
-          setAllDepartments(departments);
-        }
-      })
-      .catch(() => {
-        // hartcodierter Fallback, falls API nicht erreichbar
-        setAllDepartments([
-          { key: 'Development', label: 'Development' },
-          { key: 'Production', label: 'Production' },
-          { key: 'Sales', label: 'Sales' },
-          { key: 'Human Resources', label: 'Human Resources' },
-          { key: 'Research', label: 'Research' },
-          { key: 'Quality Management', label: 'Quality Management' },
-          { key: 'Marketing', label: 'Marketing' },
-          { key: 'Finance', label: 'Finance' },
-          { key: 'Customer Service', label: 'Customer Service' },
-        ]);
-      });
-  }, []);
-
-  // Mitarbeiter laden
   useEffect(() => {
     if (!useBackendData) return;
 
@@ -64,27 +40,31 @@ export default function EmployeeDirectoryPage() {
     const run = async () => {
       setIsLoading(true);
       try {
-        const payload = await loadEmployeesPage({ page, limit: rowsPerPage, signal: controller.signal });
+        const payload = await loadEmployeesPage({
+          page,
+          limit: rowsPerPage,
+          signal: controller.signal,
+          dept: selectedDepartment || undefined,   // ← Abteilung an Backend senden
+        });
 
-        if (payload.total === 0 || payload.rows.length === 0) {
+        if (payload.total === 0 || payload.data.length === 0) {
           setRows(directoryEmployees as any);
           setTotalEmployees(directoryEmployees.length);
           setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
-          setErrorMessage('Keine Daten aus Postgres erhalten. Fallback-Daten aktiv.');
+          setErrorMessage('Keine Daten aus Postgres erhalten. Fallback aktiv.');
           return;
         }
 
-        // Normalisiere: fullName und department (aus dept_name) immer vorhanden
-        const normalizedRows = payload.rows.map((emp: any) => ({
+        const normalizedRows = payload.data.map((emp: any) => ({
           ...emp,
           fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
-          department: emp.department || emp.dept_name || '',
+          department: emp.department || '',
         })) as EmployeeDirectoryEntry[];
 
         setRows(normalizedRows);
-        setTotalEmployees(payload.total);
-        setServerPages(payload.pages);
+        setTotalEmployees(payload.pagination.total);
+        setServerPages(payload.pagination.pages);
         setIsUsingFallbackData(false);
         setErrorMessage(null);
       } catch (err) {
@@ -93,7 +73,7 @@ export default function EmployeeDirectoryPage() {
           setTotalEmployees(directoryEmployees.length);
           setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
-          setErrorMessage('Postgres nicht erreichbar. Fallback-Daten aktiv.');
+          setErrorMessage('Postgres nicht erreichbar. Fallback aktiv.');
         }
       } finally {
         setIsLoading(false);
@@ -102,38 +82,20 @@ export default function EmployeeDirectoryPage() {
 
     void run();
     return () => controller.abort();
-  }, [page]);
+  }, [page, selectedDepartment]);   // ← Filterwechsel löst neuen API‑Call aus
 
-  // Filterlogik
-  const visibleEmployees = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    return rows.filter(emp => {
-      const dept = emp.department || emp.dept_name || '';
-      if (selectedDepartments.length > 0 && !selectedDepartments.includes(dept)) {
-        return false;
-      }
-      if (!q) return true;
-      const fn = emp.fullName || '';
-      return fn.toLowerCase().includes(q) || (emp.role || '').toLowerCase().includes(q);
-    });
-  }, [rows, searchQuery, selectedDepartments]);
+  const visibleEmployees = rows;   // kein clientseitiger Filter mehr
 
   const totalPages = useMemo(() => {
     if (useBackendData && !isUsingFallbackData) return Math.max(1, serverPages);
     return Math.max(1, Math.ceil(visibleEmployees.length / rowsPerPage));
   }, [visibleEmployees.length, serverPages, isUsingFallbackData]);
 
-  useEffect(() => { setPage(1); }, [searchQuery, selectedDepartments]);
-
-  const pagedEmployees = useMemo(() => {
-    if (useBackendData && !isUsingFallbackData) return visibleEmployees;
-    const start = (page - 1) * rowsPerPage;
-    return visibleEmployees.slice(start, start + rowsPerPage);
-  }, [visibleEmployees, page, isUsingFallbackData]);
+  useEffect(() => { setPage(1); }, [selectedDepartment]);
 
   const displayTotal = useBackendData && !isUsingFallbackData ? totalEmployees : visibleEmployees.length;
-  const from = pagedEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
-  const to = pagedEmployees.length > 0 ? Math.min((page - 1) * rowsPerPage + pagedEmployees.length, displayTotal) : 0;
+  const from = visibleEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
+  const to = visibleEmployees.length > 0 ? Math.min(page * rowsPerPage, displayTotal) : 0;
 
   return (
     <>
@@ -153,17 +115,13 @@ export default function EmployeeDirectoryPage() {
       </section>
       <section className="content-grid">
         <FiltersSidebar
-          departments={allDepartments}
-          selectedDepartments={selectedDepartments}
-          onToggleDepartment={(dept) =>
-            setSelectedDepartments(prev =>
-              prev.includes(dept) ? prev.filter(d => d !== dept) : [...prev, dept]
-            )
-          }
-          onReset={() => setSelectedDepartments(defaultSelectedDepartments)}
+          departments={departmentList}
+          selectedDepartment={selectedDepartment}
+          onSelectDepartment={(dept) => setSelectedDepartment(dept)}
+          onReset={() => setSelectedDepartment(defaultSelectedDepartment)}
         />
         <EmployeeTable
-          employees={pagedEmployees}
+          employees={visibleEmployees}
           totalEmployees={displayTotal}
           page={page}
           totalPages={totalPages}

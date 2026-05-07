@@ -1,16 +1,19 @@
-import type { DepartmentFilter } from '../types/employee';
+interface DepartmentFilter {
+  key: string;
+  label: string;
+}
 
 interface Props {
   departments: DepartmentFilter[];
-  selectedDepartments: string[];
-  onToggleDepartment: (dept: string) => void;
+  selectedDepartment: string;
+  onSelectDepartment: (dept: string) => void;
   onReset: () => void;
 }
 
 export default function FiltersSidebar({
   departments,
-  selectedDepartments,
-  onToggleDepartment,
+  selectedDepartment,
+  onSelectDepartment,
   onReset,
 }: Props) {
   return (
@@ -23,13 +26,13 @@ export default function FiltersSidebar({
               <label key={d.key} className="filter-checkbox-row">
                 <div className="checkbox-wrap">
                   <input
-                    type="checkbox"
-                    checked={selectedDepartments.includes(d.key)}
-                    onChange={() => onToggleDepartment(d.key)}
+                    type="radio"
+                    name="department"
+                    checked={selectedDepartment === d.key}
+                    onChange={() => onSelectDepartment(d.key)}
                   />
                   {d.label}
                 </div>
-                {/* Hier könnte man die Anzahl pro Abteilung anzeigen, wenn vorhanden */}
               </label>
             ))}
           </div>
