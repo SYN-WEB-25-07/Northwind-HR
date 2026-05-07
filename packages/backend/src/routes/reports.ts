@@ -9,8 +9,7 @@ router.get('/headcount', async (req, res) => {
     const { rows } = await pool.query(`
       SELECT d.dept_name, COUNT(de.employee_id) AS headcount
       FROM employees.department d
-      JOIN employees.department_employee de
-        ON d.id = de.department_id
+      JOIN employees.department_employee de ON d.id = de.department_id
       WHERE de.to_date = '9999-01-01'
       GROUP BY d.dept_name
       ORDER BY headcount DESC
@@ -46,8 +45,6 @@ router.get('/salary-distribution', async (req, res) => {
   }
 });
 
-export default router;
-
 // GET /api/reports/gender-distribution
 router.get('/gender-distribution', async (req, res) => {
   try {
@@ -72,10 +69,10 @@ router.get('/department-salary-avg', async (req, res) => {
              ROUND(AVG(s.amount), 2) AS avg_salary,
              COUNT(*) AS employee_count
       FROM employees.department d
-      JOIN employees.department_employee de
-        ON d.id = de.department_id AND de.to_date = '9999-01-01'
-      JOIN employees.salary s
-        ON de.employee_id = s.employee_id AND s.to_date = '9999-01-01'
+      JOIN employees.department_employee de ON d.id = de.department_id
+      JOIN employees.salary s ON de.employee_id = s.employee_id
+      WHERE de.to_date = '9999-01-01'
+        AND s.to_date = '9999-01-01'
       GROUP BY d.dept_name
       ORDER BY avg_salary DESC
     `);
@@ -85,3 +82,5 @@ router.get('/department-salary-avg', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+export default router;
