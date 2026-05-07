@@ -1,10 +1,14 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import type { EmployeeDirectoryEntry } from '../types/employee';
 
 interface EmployeeTableProps {
   employees: EmployeeDirectoryEntry[];
   totalEmployees: number;
   page: number;
+  totalPages: number;
+  from: number;
+  to: number;
+  onPageChange: (nextPage: number) => void;
   isLoading: boolean;
   errorMessage: string | null;
 }
@@ -13,11 +17,26 @@ const EmployeeTable = ({
   employees,
   totalEmployees,
   page,
+  totalPages,
+  from,
+  to,
+  onPageChange,
   isLoading,
   errorMessage
 }: EmployeeTableProps): JSX.Element => {
-  const from = employees.length > 0 ? 1 : 0;
-  const to = employees.length;
+  const paginationIndexes = useMemo(() => {
+    const maxVisiblePages = 3;
+    const current = Math.min(Math.max(page, 1), totalPages);
+
+    let start = Math.max(1, current - 1);
+    let end = Math.min(totalPages, start + maxVisiblePages - 1);
+
+    if (end - start + 1 < maxVisiblePages) {
+      start = Math.max(1, end - maxVisiblePages + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [page, totalPages]);
 
   return (
     <section className="directory-table-card" aria-label="Mitarbeiter-Verzeichnis Tabelle">
@@ -135,19 +154,36 @@ const EmployeeTable = ({
         </p>
 
         <div className="pagination-actions" aria-label="Pagination">
-          <button type="button" className="page-arrow" disabled={page <= 1}>
+          <button
+            type="button"
+            className="page-arrow"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+            aria-label="Vorherige Seite"
+          >
             <span className="material-symbols-outlined">chevron_left</span>
           </button>
-          <button type="button" className="page-index is-current">
-            1
-          </button>
-          <button type="button" className="page-index">
-            2
-          </button>
-          <button type="button" className="page-index">
-            3
-          </button>
-          <button type="button" className="page-arrow">
+
+          {paginationIndexes.map((index) => (
+            <button
+              key={index}
+              type="button"
+              className={`page-index ${index === page ? 'is-current' : ''}`}
+              onClick={() => onPageChange(index)}
+              aria-label={`Seite ${index}`}
+              aria-current={index === page ? 'page' : undefined}
+            >
+              {index}
+            </button>
+          ))}
+
+          <button
+            type="button"
+            className="page-arrow"
+            disabled={page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
+            aria-label="Nächste Seite"
+          >
             <span className="material-symbols-outlined">chevron_right</span>
           </button>
         </div>
