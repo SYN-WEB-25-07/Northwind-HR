@@ -74,16 +74,20 @@ export default function EmployeeDirectoryPage() {
     return () => controller.abort();
   }, [page]);
 
-  const visibleEmployees = useMemo(() => {
+ const visibleEmployees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+    
     return rows.filter(emp => {
-      const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(emp.department ?? '');
+      const currentDept = emp.department || emp.dept_name || '';
+      const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(currentDept);
+      
       if (!matchesDept) return false;
       if (!q) return true;
-      const fn = emp.fullName || `${emp.first_name} ${emp.last_name}`;
+      
+      const fn = emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
       return fn.toLowerCase().includes(q) || emp.role?.toLowerCase().includes(q);
     });
-  }, [rows, searchQuery, selectedDepartments]);
+  },[rows, searchQuery, selectedDepartments]);
 
   const totalPages = useMemo(() => {
     if (useBackendData && !isUsingFallbackData) return Math.max(1, serverPages);

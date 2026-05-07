@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell,
+  PieChart, Pie, Cell, Legend // <-- Legend hinzugefügt
 } from 'recharts';
 import {
   fetchHeadcount,
@@ -10,9 +10,8 @@ import {
   fetchDeptSalaryAvg,
 } from '../api/reports';
 
-const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff6361', '#bc5090', '#36a2eb', '#e7e9ed', '#003f5c'];
+const COLORS =['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff6361', '#bc5090', '#36a2eb', '#e7e9ed', '#003f5c'];
 
-// Jedes Diagramm bekommt eine eigene Ladezustand-Variable
 export default function Dashboard() {
   const [headcount, setHeadcount] = useState<any[] | null>(null);
   const [salary, setSalary] = useState<any[] | null>(null);
@@ -20,11 +19,25 @@ export default function Dashboard() {
   const [deptAvg, setDeptAvg] = useState<any[] | null>(null);
 
   useEffect(() => {
-    fetchHeadcount().then(setHeadcount).catch(() => setHeadcount([]));
-    fetchSalaryDistribution().then(setSalary).catch(() => setSalary([]));
-    fetchGenderDistribution().then(setGender).catch(() => setGender([]));
-    fetchDeptSalaryAvg().then(setDeptAvg).catch(() => setDeptAvg([]));
-  }, []);
+    // BarCharts kommen oft mit Strings auf der Y-Achse klar, PieCharts nicht. 
+    // Wir erzwingen hier bei count und avg_salary das Format Number()
+    
+    fetchHeadcount()
+      .then(data => setHeadcount(data.map((d: any) => ({ ...d, headcount: Number(d.headcount) }))))
+      .catch(() => setHeadcount([]));
+      
+    fetchSalaryDistribution()
+      .then(data => setSalary(data.map((d: any) => ({ ...d, count: Number(d.count) }))))
+      .catch(() => setSalary([]));
+      
+    fetchGenderDistribution()
+      .then(data => setGender(data.map((d: any) => ({ ...d, count: Number(d.count) }))))
+      .catch(() => setGender([]));
+      
+    fetchDeptSalaryAvg()
+      .then(data => setDeptAvg(data.map((d: any) => ({ ...d, avg_salary: Number(d.avg_salary) }))))
+      .catch(() => setDeptAvg([]));
+  },[]);
 
   const renderChart = (title: string, chart: React.ReactNode) => (
     <div className="filters-card">
@@ -59,6 +72,7 @@ export default function Dashboard() {
                 ))}
               </Pie>
               <Tooltip />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         ) : <p>Lädt…</p>
@@ -74,6 +88,7 @@ export default function Dashboard() {
                 ))}
               </Pie>
               <Tooltip />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         ) : <p>Lädt…</p>
