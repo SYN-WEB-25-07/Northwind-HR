@@ -1005,3 +1005,18 @@ input {
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 900px) {
+  .dashboard-main {
+    margin-left: 0;
+  }
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+  .filters-column {
+    width: 100%;
+  }
+  .main-inner {
+    padding: 1rem;
+  }
+}

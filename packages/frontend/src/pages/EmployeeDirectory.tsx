@@ -9,20 +9,13 @@ const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
 const defaultSelectedDepartments: string[] = [];
 
-// 🔧 Diese Liste entspricht exakt den 9 Abteilungen aus deiner Datenbank
-const departmentList = [
-  { key: 'Development', label: 'Development' },
-  { key: 'Production', label: 'Production' },
-  { key: 'Sales', label: 'Sales' },
-  { key: 'Human Resources', label: 'Human Resources' },
-  { key: 'Research', label: 'Research' },
-  { key: 'Quality Management', label: 'Quality Management' },
-  { key: 'Marketing', label: 'Marketing' },
-  { key: 'Finance', label: 'Finance' },
-  { key: 'Customer Service', label: 'Customer Service' },
-];
+interface DeptFilter {
+  key: string;
+  label: string;
+}
 
 export default function EmployeeDirectoryPage() {
+  const [departments, setDepartments] = useState<DeptFilter[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
@@ -32,6 +25,31 @@ export default function EmployeeDirectoryPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Dynamische Abteilungsliste von der API holen
+  useEffect(() => {
+    fetch('/api/reports/headcount')
+      .then(r => r.json())
+      .then((data: any[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDepartments(data.map((d: any) => ({ key: d.dept_name, label: d.dept_name })));
+        }
+      })
+      .catch(() => {
+        // Fallback, falls die API nicht erreichbar ist
+        setDepartments([
+          { key: 'Development', label: 'Development' },
+          { key: 'Production', label: 'Production' },
+          { key: 'Sales', label: 'Sales' },
+          { key: 'Human Resources', label: 'Human Resources' },
+          { key: 'Research', label: 'Research' },
+          { key: 'Quality Management', label: 'Quality Management' },
+          { key: 'Marketing', label: 'Marketing' },
+          { key: 'Finance', label: 'Finance' },
+          { key: 'Customer Service', label: 'Customer Service' },
+        ]);
+      });
+  }, []);
 
   useEffect(() => {
     if (!useBackendData) return;
@@ -52,7 +70,14 @@ export default function EmployeeDirectoryPage() {
           return;
         }
 
-        setRows(payload.rows as EmployeeDirectoryEntry[]);
+        // Normalisiere die Felder, damit der Filter sicher funktioniert
+        const normalizedRows = payload.rows.map((emp: any) => ({
+          ...emp,
+          fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
+          department: emp.department || emp.dept_name || '',
+        })) as EmployeeDirectoryEntry[];
+
+        setRows(normalizedRows);
         setTotalEmployees(payload.total);
         setServerPages(payload.pages);
         setIsUsingFallbackData(false);
@@ -74,20 +99,17 @@ export default function EmployeeDirectoryPage() {
     return () => controller.abort();
   }, [page]);
 
- const visibleEmployees = useMemo(() => {
+  const visibleEmployees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    
     return rows.filter(emp => {
-      const currentDept = emp.department || emp.dept_name || '';
-      const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(currentDept);
-      
+      const dept = emp.department || '';
+      const matchesDept = selectedDepartments.length === 0 || selectedDepartments.includes(dept);
       if (!matchesDept) return false;
       if (!q) return true;
-      
-      const fn = emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim();
-      return fn.toLowerCase().includes(q) || emp.role?.toLowerCase().includes(q);
+      const fn = emp.fullName || '';
+      return fn.toLowerCase().includes(q) || (emp.role || '').toLowerCase().includes(q);
     });
-  },[rows, searchQuery, selectedDepartments]);
+  }, [rows, searchQuery, selectedDepartments]);
 
   const totalPages = useMemo(() => {
     if (useBackendData && !isUsingFallbackData) return Math.max(1, serverPages);
@@ -124,7 +146,7 @@ export default function EmployeeDirectoryPage() {
       </section>
       <section className="content-grid">
         <FiltersSidebar
-          departments={departmentList}
+          departments={departments}
           selectedDepartments={selectedDepartments}
           onToggleDepartment={(dept) =>
             setSelectedDepartments(prev =>
