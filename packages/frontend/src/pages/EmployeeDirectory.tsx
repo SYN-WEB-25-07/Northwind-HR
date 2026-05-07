@@ -23,34 +23,31 @@ const departmentList = [
 
 export default function EmployeeDirectoryPage() {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
-  const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
+  const [allRows, setAllRows] = useState<EmployeeDirectoryEntry[]>([]);
   const [totalEmployees, setTotalEmployees] = useState(0);
-  const [serverPages, setServerPages] = useState(1);
   const [isUsingFallbackData, setIsUsingFallbackData] = useState(!useBackendData);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Lädt ALLE Mitarbeiter (ohne Backend-Filter), speichert sie in allRows
   useEffect(() => {
     if (!useBackendData) return;
 
     const controller = new AbortController();
-
     const run = async () => {
       setIsLoading(true);
       try {
-        const deptString = selectedDepartments.length > 0 ? selectedDepartments.join(',') : undefined;
         const payload = await loadEmployeesPage({
-          page,
-          limit: rowsPerPage,
+          page: 1,
+          limit: 1000,               // lädt alle 50 auf einmal
           signal: controller.signal,
-          dept: deptString,
+          dept: undefined,
         });
 
         if (payload.total === 0 || payload.data.length === 0) {
-          setRows(directoryEmployees as any);
+          setAllRows(directoryEmployees as any);
           setTotalEmployees(directoryEmployees.length);
-          setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
           setErrorMessage('Keine Daten aus Postgres erhalten. Fallback aktiv.');
           return;
@@ -62,16 +59,14 @@ export default function EmployeeDirectoryPage() {
           department: emp.department || '',
         })) as EmployeeDirectoryEntry[];
 
-        setRows(normalizedRows);
+        setAllRows(normalizedRows);
         setTotalEmployees(payload.pagination.total);
-        setServerPages(payload.pagination.pages);
         setIsUsingFallbackData(false);
         setErrorMessage(null);
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          setRows(directoryEmployees as any);
+          setAllRows(directoryEmployees as any);
           setTotalEmployees(directoryEmployees.length);
-          setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
           setIsUsingFallbackData(true);
           setErrorMessage('Postgres nicht erreichbar. Fallback aktiv.');
         }
@@ -79,22 +74,31 @@ export default function EmployeeDirectoryPage() {
         setIsLoading(false);
       }
     };
-
     void run();
     return () => controller.abort();
-  }, [page, selectedDepartments]);
+  }, []);
 
-  const visibleEmployees = rows;
-  const totalPages = useMemo(() => {
-    if (useBackendData && !isUsingFallbackData) return Math.max(1, serverPages);
-    return Math.max(1, Math.ceil(visibleEmployees.length / rowsPerPage));
-  }, [visibleEmployees.length, serverPages, isUsingFallbackData]);
+  // Clientseitigen Filter anwenden
+  const filteredRows = useMemo(() => {
+    if (selectedDepartments.length === 0) {
+      return allRows;
+    }
+    return allRows.filter(emp => selectedDepartments.includes(emp.department || ''));
+  }, [allRows, selectedDepartments]);
+
+  const totalFiltered = filteredRows.length;
+  const totalPages = Math.max(1, Math.ceil(totalFiltered / rowsPerPage));
 
   useEffect(() => { setPage(1); }, [selectedDepartments]);
 
-  const displayTotal = useBackendData && !isUsingFallbackData ? totalEmployees : visibleEmployees.length;
-  const from = visibleEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
-  const to = visibleEmployees.length > 0 ? Math.min(page * rowsPerPage, displayTotal) : 0;
+  const pagedEmployees = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    return filteredRows.slice(start, start + rowsPerPage);
+  }, [filteredRows, page]);
+
+  const displayTotal = totalFiltered;
+  const from = pagedEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
+  const to = pagedEmployees.length > 0 ? Math.min(page * rowsPerPage, displayTotal) : 0;
 
   return (
     <>
@@ -124,7 +128,7 @@ export default function EmployeeDirectoryPage() {
           onReset={() => setSelectedDepartments(defaultSelectedDepartments)}
         />
         <EmployeeTable
-          employees={visibleEmployees}
+          employees={pagedEmployees}
           totalEmployees={displayTotal}
           page={page}
           totalPages={totalPages}
