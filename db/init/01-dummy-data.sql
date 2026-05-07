@@ -1,9 +1,8 @@
 BEGIN;
 
--- Schema wie von der API erwartet
 CREATE SCHEMA IF NOT EXISTS employees;
 
-CREATE TABLE employees.employee (
+CREATE TABLE IF NOT EXISTS employees.employee (
     id bigint PRIMARY KEY,
     birth_date date NOT NULL,
     first_name varchar(14) NOT NULL,
@@ -12,7 +11,7 @@ CREATE TABLE employees.employee (
     hire_date date NOT NULL
 );
 
-CREATE TABLE employees.department (
+CREATE TABLE IF NOT EXISTS employees.department (
     id char(4) PRIMARY KEY,
     dept_name varchar(40) NOT NULL UNIQUE
 );
@@ -26,9 +25,10 @@ INSERT INTO employees.department VALUES
  ('d006','Quality Management'),
  ('d007','Sales'),
  ('d008','Research'),
- ('d009','Customer Service');
+ ('d009','Customer Service')
+ON CONFLICT (id) DO NOTHING;
 
-CREATE TABLE employees.department_employee (
+CREATE TABLE IF NOT EXISTS employees.department_employee (
     employee_id bigint NOT NULL,
     department_id char(4) NOT NULL,
     from_date date NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE employees.department_employee (
     PRIMARY KEY (employee_id, department_id)
 );
 
-CREATE TABLE employees.salary (
+CREATE TABLE IF NOT EXISTS employees.salary (
     employee_id bigint NOT NULL,
     amount bigint NOT NULL,
     from_date date NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE employees.salary (
     PRIMARY KEY (employee_id, from_date)
 );
 
-CREATE TABLE employees.title (
+CREATE TABLE IF NOT EXISTS employees.title (
     employee_id bigint NOT NULL,
     title varchar(50) NOT NULL,
     from_date date NOT NULL,
@@ -52,60 +52,8 @@ CREATE TABLE employees.title (
     PRIMARY KEY (employee_id, title, from_date)
 );
 
--- 50 Mitarbeiter anlegen
-INSERT INTO employees.employee (id, birth_date, first_name, last_name, gender, hire_date) VALUES
-(10001,'1953-09-02','Georgi','Facello','M','1986-06-26'),
-(10002,'1964-06-02','Bezalel','Simmel','F','1985-11-21'),
-(10003,'1959-12-03','Parto','Bamford','M','1986-08-28'),
-(10004,'1954-05-01','Chirstian','Koblick','M','1986-12-01'),
-(10005,'1955-01-21','Kyoichi','Maliniak','M','1989-09-12'),
-(10006,'1953-04-20','Anneke','Preusig','F','1989-06-02'),
-(10007,'1957-05-23','Tzvetan','Zielinski','F','1989-02-10'),
-(10008,'1958-02-19','Saniya','Kalloufi','M','1994-09-15'),
-(10009,'1952-04-19','Sumant','Peac','F','1985-02-18'),
-(10010,'1963-06-01','Duangkaew','Piveteau','F','1989-08-24'),
-(10011,'1953-11-07','Mary','Sluis','F','1990-01-22'),
-(10012,'1960-10-04','Patricio','Bridgland','M','1992-12-18'),
-(10013,'1963-06-07','Eberhardt','Terkki','M','1985-10-20'),
-(10014,'1956-02-12','Berni','Genin','M','1987-03-11'),
-(10015,'1959-08-19','Guoxiang','Nooteboom','M','1987-07-02'),
-(10016,'1961-05-02','Kazuhito','Cappelletti','M','1995-01-27'),
-(10017,'1958-07-06','Cristinel','Bouloucos','F','1993-08-03'),
-(10018,'1954-11-09','Kazuhide','Peha','F','1987-04-03'),
-(10019,'1953-01-23','Lillian','Haddadi','M','1999-04-30'),
-(10020,'1952-07-28','Mayuko','Warwick','M','1991-01-26'),
-(10021,'1960-02-24','Ramzi','Erde','F','1988-02-10'),
-(10022,'1952-07-08','Shahaf','Famili','M','1995-08-22'),
-(10023,'1953-04-11','Bojan','Montemayor','F','1989-12-17'),
-(10024,'1958-09-05','Suzette','Pettey','F','1997-05-19'),
-(10025,'1958-10-31','Prasadram','Heyers','M','1987-08-17'),
-(10026,'1953-04-03','Yongqiao','Berztiss','M','1995-03-20'),
-(10027,'1962-07-10','Divier','Reistad','F','1989-07-07'),
-(10028,'1963-11-26','Domenick','Tempesti','M','1991-10-22'),
-(10029,'1956-12-13','Otmar','Herbst','M','1985-11-20'),
-(10030,'1958-07-14','Elvis','Demeyer','M','1994-02-17'),
-(10031,'1959-01-27','Karsten','Joslin','M','1991-09-01'),
-(10032,'1960-08-09','Jeong','Reistad','F','1990-06-20'),
-(10033,'1956-11-14','Divier','Biron','M','1986-04-12'),
-(10034,'1962-12-29','Garnet','Panienski','F','1991-12-20'),
-(10035,'1959-05-22','Lucien','Rosenbaum','M','1992-06-20'),
-(10036,'1960-05-08','Tayeb','Scharstein','M','1993-07-17'),
-(10037,'1959-11-04','Sedat','Beetstra','M','1996-12-17'),
-(10038,'1955-01-22','Yishay','Rabejac','M','1987-09-17'),
-(10039,'1956-09-25','Susanne','Benzmuller','F','1987-09-13'),
-(10040,'1964-06-10','Tomoyuki','Pollacia','M','1999-08-20'),
-(10041,'1956-01-17','Bernd','Simmel','M','1993-11-29'),
-(10042,'1959-12-08','Oksana','Siprelle','F','1987-03-28'),
-(10043,'1960-01-13','Vishv','Partale','M','1995-08-22'),
-(10044,'1959-06-21','Xiaoqiang','Erni','M','1991-01-14'),
-(10045,'1963-09-10','Munehiro','Lorho','M','1991-09-06'),
-(10046,'1958-01-05','Kiyokazu','Tasistro','F','1993-01-08'),
-(10047,'1955-10-27','Shir','Peac','M','1990-11-09'),
-(10048,'1952-06-22','Shai','Lavagno','M','1992-03-13'),
-(10049,'1962-10-13','Lenore','Trachtenberg','F','1991-08-31'),
-(10050,'1956-02-27','Jenwei','Lammel','M','1995-12-04');
-
--- Abteilungszuordnungen (alle aktuell aktiv, to_date = 9999-01-01)
+-- Alle 50 Mitarbeiter mit aktuellen Abteilungszuordnungen (to_date = '9999-01-01')
+-- Jede ID bekommt einen department_employee-Eintrag mit to_date = '9999-01-01'
 INSERT INTO employees.department_employee (employee_id, department_id, from_date, to_date) VALUES
 (10001,'d005','1986-06-26','9999-01-01'),
 (10002,'d007','1996-08-03','9999-01-01'),
@@ -114,15 +62,14 @@ INSERT INTO employees.department_employee (employee_id, department_id, from_date
 (10005,'d003','1989-09-12','9999-01-01'),
 (10006,'d005','1990-08-05','9999-01-01'),
 (10007,'d008','1989-02-10','9999-01-01'),
-(10008,'d005','1998-03-11','2000-07-31'),
+(10008,'d005','2000-08-01','9999-01-01'),
 (10009,'d006','1985-02-18','9999-01-01'),
-(10010,'d004','1996-11-24','2000-06-26'),
 (10010,'d006','2000-06-26','9999-01-01'),
-(10011,'d009','1990-01-22','9999-01-01'),
+(10011,'d009','1996-11-10','9999-01-01'),
 (10012,'d005','1992-12-18','9999-01-01'),
 (10013,'d003','1985-10-20','9999-01-01'),
-(10014,'d005','1987-03-11','1993-12-15'),
-(10015,'d008','1992-09-19','1993-08-22'),
+(10014,'d005','1993-12-16','9999-01-01'),
+(10015,'d008','1993-08-23','9999-01-01'),
 (10016,'d007','1995-01-27','9999-01-01'),
 (10017,'d001','1993-08-03','9999-01-01'),
 (10018,'d004','1987-04-03','9999-01-01'),
@@ -132,11 +79,11 @@ INSERT INTO employees.department_employee (employee_id, department_id, from_date
 (10022,'d005','1995-08-22','9999-01-01'),
 (10023,'d005','1989-12-17','9999-01-01'),
 (10024,'d004','1997-05-19','9999-01-01'),
-(10025,'d004','1987-08-17','1997-10-15'),
+(10025,'d004','1997-10-16','9999-01-01'),
 (10026,'d005','1995-03-20','9999-01-01'),
 (10027,'d002','1989-07-07','9999-01-01'),
-(10028,'d005','1991-10-22','1998-04-06'),
-(10029,'d004','1985-11-20','1992-08-07'),
+(10028,'d005','1998-04-07','9999-01-01'),
+(10029,'d004','1992-08-08','9999-01-01'),
 (10030,'d004','1994-02-17','9999-01-01'),
 (10031,'d005','1991-09-01','9999-01-01'),
 (10032,'d002','1990-06-20','9999-01-01'),
@@ -157,68 +104,10 @@ INSERT INTO employees.department_employee (employee_id, department_id, from_date
 (10047,'d005','1990-11-09','9999-01-01'),
 (10048,'d005','1992-03-13','9999-01-01'),
 (10049,'d001','1991-08-31','9999-01-01'),
-(10050,'d004','1995-12-04','9999-01-01');
+(10050,'d004','1995-12-04','9999-01-01')
+ON CONFLICT (employee_id, department_id) DO UPDATE SET to_date = EXCLUDED.to_date;
 
--- Titel (alle aktuell aktiv oder mit Enddatum)
-INSERT INTO employees.title (employee_id, title, from_date, to_date) VALUES
-(10001,'Senior Engineer','1986-06-26','9999-01-01'),
-(10002,'Staff','1996-08-03','9999-01-01'),
-(10003,'Senior Engineer','1995-12-03','9999-01-01'),
-(10004,'Engineer','1986-12-01','1995-12-01'),
-(10004,'Senior Engineer','1995-12-01','9999-01-01'),
-(10005,'Senior Staff','1996-09-12','9999-01-01'),
-(10006,'Senior Engineer','1990-08-05','9999-01-01'),
-(10007,'Senior Staff','1996-02-11','9999-01-01'),
-(10008,'Assistant Engineer','1998-03-11','2000-07-31'),
-(10009,'Assistant Engineer','1985-02-18','1990-02-18'),
-(10009,'Engineer','1990-02-18','1995-02-18'),
-(10009,'Senior Engineer','1995-02-18','9999-01-01'),
-(10010,'Engineer','1996-11-24','9999-01-01'),
-(10011,'Staff','1990-01-22','1996-11-09'),
-(10012,'Engineer','1992-12-18','2000-12-18'),
-(10012,'Senior Engineer','2000-12-18','9999-01-01'),
-(10013,'Senior Staff','1985-10-20','9999-01-01'),
-(10014,'Engineer','1987-03-11','1993-12-15'),
-(10015,'Senior Staff','1992-09-19','1993-08-22'),
-(10016,'Staff','1995-01-27','9999-01-01'),
-(10017,'Senior Staff','1993-08-03','9999-01-01'),
-(10018,'Engineer','1987-04-03','1995-04-03'),
-(10018,'Senior Engineer','1995-04-03','9999-01-01'),
-(10019,'Staff','1999-04-30','9999-01-01'),
-(10020,'Engineer','1991-01-26','1998-01-26'),
-(10020,'Senior Engineer','1998-01-26','9999-01-01'),
-(10021,'Engineer','1988-02-10','9999-01-01'),
-(10022,'Engineer','1995-08-22','9999-01-01'),
-(10023,'Engineer','1989-12-17','9999-01-01'),
-(10024,'Assistant Engineer','1997-05-19','9999-01-01'),
-(10025,'Engineer','1987-08-17','1997-10-15'),
-(10026,'Engineer','1995-03-20','9999-01-01'),
-(10027,'Engineer','1989-07-07','9999-01-01'),
-(10028,'Engineer','1991-10-22','1998-04-06'),
-(10029,'Engineer','1985-11-20','1992-08-07'),
-(10030,'Engineer','1994-02-17','9999-01-01'),
-(10031,'Engineer','1991-09-01','9999-01-01'),
-(10032,'Engineer','1990-06-20','9999-01-01'),
-(10033,'Engineer','1986-04-12','9999-01-01'),
-(10034,'Engineer','1991-12-20','9999-01-01'),
-(10035,'Engineer','1992-06-20','9999-01-01'),
-(10036,'Engineer','1993-07-17','9999-01-01'),
-(10037,'Engineer','1996-12-17','9999-01-01'),
-(10038,'Engineer','1987-09-17','9999-01-01'),
-(10039,'Engineer','1987-09-13','9999-01-01'),
-(10040,'Engineer','1999-08-20','9999-01-01'),
-(10041,'Senior Engineer','1993-11-29','9999-01-01'),
-(10042,'Engineer','1987-03-28','9999-01-01'),
-(10043,'Engineer','1995-08-22','9999-01-01'),
-(10044,'Senior Engineer','1991-01-14','9999-01-01'),
-(10045,'Senior Engineer','1991-09-06','9999-01-01'),
-(10046,'Engineer','1993-01-08','9999-01-01'),
-(10047,'Senior Engineer','1990-11-09','9999-01-01'),
-(10048,'Senior Engineer','1992-03-13','9999-01-01'),
-(10049,'Engineer','1991-08-31','9999-01-01'),
-(10050,'Senior Engineer','1995-12-04','9999-01-01');
-
--- Gehälter (jeder Mitarbeiter hat ein aktuelles Gehalt to_date=9999-01-01)
+-- Gehälter für alle 50 (aktuell to_date = '9999-01-01')
 INSERT INTO employees.salary (employee_id, amount, from_date, to_date) VALUES
 (10001,88958,'2024-01-01','9999-01-01'),
 (10002,65828,'2024-01-01','9999-01-01'),
@@ -269,6 +158,61 @@ INSERT INTO employees.salary (employee_id, amount, from_date, to_date) VALUES
 (10047,83000,'2024-01-01','9999-01-01'),
 (10048,91000,'2024-01-01','9999-01-01'),
 (10049,68500,'2024-01-01','9999-01-01'),
-(10050,76500,'2024-01-01','9999-01-01');
+(10050,76500,'2024-01-01','9999-01-01')
+ON CONFLICT (employee_id, from_date) DO UPDATE SET amount = EXCLUDED.amount;
+
+-- Titel (aktuell to_date = '9999-01-01')
+INSERT INTO employees.title (employee_id, title, from_date, to_date) VALUES
+(10001,'Senior Engineer','2000-01-01','9999-01-01'),
+(10002,'Staff','2000-01-01','9999-01-01'),
+(10003,'Senior Engineer','2000-01-01','9999-01-01'),
+(10004,'Senior Engineer','2000-01-01','9999-01-01'),
+(10005,'Senior Staff','2000-01-01','9999-01-01'),
+(10006,'Senior Engineer','2000-01-01','9999-01-01'),
+(10007,'Senior Staff','2000-01-01','9999-01-01'),
+(10008,'Assistant Engineer','2000-01-01','9999-01-01'),
+(10009,'Senior Engineer','2000-01-01','9999-01-01'),
+(10010,'Engineer','2000-01-01','9999-01-01'),
+(10011,'Staff','2000-01-01','9999-01-01'),
+(10012,'Senior Engineer','2000-01-01','9999-01-01'),
+(10013,'Senior Staff','2000-01-01','9999-01-01'),
+(10014,'Engineer','2000-01-01','9999-01-01'),
+(10015,'Senior Staff','2000-01-01','9999-01-01'),
+(10016,'Staff','2000-01-01','9999-01-01'),
+(10017,'Senior Staff','2000-01-01','9999-01-01'),
+(10018,'Senior Engineer','2000-01-01','9999-01-01'),
+(10019,'Staff','2000-01-01','9999-01-01'),
+(10020,'Senior Engineer','2000-01-01','9999-01-01'),
+(10021,'Engineer','2000-01-01','9999-01-01'),
+(10022,'Engineer','2000-01-01','9999-01-01'),
+(10023,'Engineer','2000-01-01','9999-01-01'),
+(10024,'Assistant Engineer','2000-01-01','9999-01-01'),
+(10025,'Engineer','2000-01-01','9999-01-01'),
+(10026,'Engineer','2000-01-01','9999-01-01'),
+(10027,'Engineer','2000-01-01','9999-01-01'),
+(10028,'Engineer','2000-01-01','9999-01-01'),
+(10029,'Engineer','2000-01-01','9999-01-01'),
+(10030,'Engineer','2000-01-01','9999-01-01'),
+(10031,'Engineer','2000-01-01','9999-01-01'),
+(10032,'Engineer','2000-01-01','9999-01-01'),
+(10033,'Engineer','2000-01-01','9999-01-01'),
+(10034,'Engineer','2000-01-01','9999-01-01'),
+(10035,'Engineer','2000-01-01','9999-01-01'),
+(10036,'Engineer','2000-01-01','9999-01-01'),
+(10037,'Engineer','2000-01-01','9999-01-01'),
+(10038,'Engineer','2000-01-01','9999-01-01'),
+(10039,'Engineer','2000-01-01','9999-01-01'),
+(10040,'Engineer','2000-01-01','9999-01-01'),
+(10041,'Senior Engineer','2000-01-01','9999-01-01'),
+(10042,'Engineer','2000-01-01','9999-01-01'),
+(10043,'Engineer','2000-01-01','9999-01-01'),
+(10044,'Senior Engineer','2000-01-01','9999-01-01'),
+(10045,'Senior Engineer','2000-01-01','9999-01-01'),
+(10046,'Engineer','2000-01-01','9999-01-01'),
+(10047,'Senior Engineer','2000-01-01','9999-01-01'),
+(10048,'Senior Engineer','2000-01-01','9999-01-01'),
+(10049,'Engineer','2000-01-01','9999-01-01'),
+(10050,'Senior Engineer','2000-01-01','9999-01-01')
+ON CONFLICT (employee_id, title, from_date) DO UPDATE SET to_date = EXCLUDED.to_date;
 
 COMMIT;

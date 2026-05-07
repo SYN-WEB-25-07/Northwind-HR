@@ -19,3 +19,24 @@ export interface SalaryDistRow {
   range: string;
   count: number;
 }
+
+export interface HeadCountRow {
+  dept_name: string;
+  headcount: number;
+}
+
+export interface SalaryDistRow {
+  range: string;
+  count: number;
+}
+
+export interface GenderDistRow {
+  gender: string;
+  count: number;
+}
+
+export interface DeptSalaryAvgRow {
+  dept_name: string;
+  avg_salary: number;
+  employee_count: number;
+}

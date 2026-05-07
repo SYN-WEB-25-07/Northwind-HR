@@ -145,6 +145,19 @@ input {
   font-weight: 700;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
 .sidebar-close-button {
   display: none;
 }
@@ -1004,4 +1017,20 @@ input {
     width: 100%;
     justify-content: flex-start;
   }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+}
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.card h2 {
+  margin-top: 0;
 }

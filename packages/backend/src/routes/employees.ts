@@ -57,7 +57,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/employees/top-paid (unverändert)
+// GET /api/employees/top-paid – Top 10 Gehälter
 router.get('/top-paid', async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -82,7 +82,7 @@ router.get('/top-paid', async (req, res) => {
   }
 });
 
-// GET /api/employees/:id
+// GET /api/employees/:id – Einzeldetail
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;

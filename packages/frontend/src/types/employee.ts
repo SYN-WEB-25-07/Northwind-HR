@@ -1,53 +1,27 @@
-export type StatusTone = 'green' | 'blue' | 'amber';
+import React from 'react';  // ⬅️ behebt 'Cannot find name ReactNode'
 
-export type EmployeeStatus = 'Aktiv' | 'Remote' | 'Im Urlaub';
-
-export type EmployeeLocation = 'Berlin (HQ)' | 'München' | 'Remote';
+export interface DepartmentFilter {
+  key: string;    // ⬅️ jetzt string, keine Funktion mehr
+  label: string;
+}
 
 export interface EmployeeDirectoryEntry {
-  employeeCode: string;
+  // Diese drei Felder kommen sicher aus der API
   fullName: string;
   role: string;
   department: string;
-  status: EmployeeStatus;
-  statusTone: StatusTone;
-  email: string;
-  phone: string;
-  avatar: string;
-  location: EmployeeLocation;
-  presenceTone: StatusTone;
-}
 
-export interface DepartmentFilter {
-  name: string;
-  count: number;
-  defaultSelected?: boolean;
-}
-
-export interface EmployeesApiRow {
-  id: number;
-  first_name: string;
-  last_name: string;
-  gender: 'M' | 'F';
-  hire_date: string;
-  dept_name: string;
-  title: string;
-}
-
-export interface EmployeesApiResponse {
-  data: EmployeesApiRow[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    pages: number;
-  };
-}
-
-export interface DirectoryPage {
-  rows: EmployeeDirectoryEntry[];
-  total: number;
-  page: number;
-  pages: number;
-  limit: number;
+  // Alle anderen sind optional, damit keine Fehler mehr
+  first_name?: string;
+  last_name?: string;
+  title?: string;
+  dept_name?: string;
+  avatar?: string;
+  location?: string;
+  status?: string;
+  email?: string;
+  phone?: string;
+  hireDate?: string;
+  gender?: string;
+  // … bei Bedarf weitere optionale Felder
 }

@@ -1,23 +1,25 @@
 import { memo } from 'react';
 import type { MouseEvent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 
 interface NavItem {
   icon: string;
   label: string;
   active?: boolean;
+  to: string;        // neu: Pfad für react-router
 }
 
 const navItems: NavItem[] = [
-  { icon: 'dashboard', label: 'Dashboard' },
-  { icon: 'groups', label: 'Employee Directory', active: true },
-  { icon: 'domain', label: 'Departments' },
-  { icon: 'payments', label: 'Payroll' },
-  { icon: 'description', label: 'Documents' }
+  { icon: 'dashboard', label: 'Dashboard', to: '/' },
+  { icon: 'groups', label: 'Employee Directory', active: true, to: '/employees' },
+  { icon: 'domain', label: 'Departments', to: '/departments' },
+  { icon: 'payments', label: 'Payroll', to: '/payroll' },
+  { icon: 'description', label: 'Documents', to: '/documents' }
 ];
 
 const secondaryItems: NavItem[] = [
-  { icon: 'contact_support', label: 'Support' },
-  { icon: 'logout', label: 'Sign Out' }
+  { icon: 'contact_support', label: 'Support', to: '/support' },
+  { icon: 'logout', label: 'Sign Out', to: '/logout' }
 ];
 
 interface SidebarProps {
@@ -26,12 +28,8 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isMobileOpen, onClose }: SidebarProps): JSX.Element => {
+  const location = useLocation();
   const sidebarClassName = `dashboard-sidebar ${isMobileOpen ? 'is-mobile-open' : ''}`;
-
-  const handleNavigationClick = (event: MouseEvent<HTMLAnchorElement>): void => {
-    event.preventDefault();
-    onClose();
-  };
 
   return (
     <>
@@ -64,34 +62,40 @@ const Sidebar = ({ isMobileOpen, onClose }: SidebarProps): JSX.Element => {
 
         <nav className="sidebar-nav" aria-label="Primary navigation">
           {navItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href="#"
-              className={`sidebar-link ${item.active ? 'is-active' : ''}`}
-              onClick={handleNavigationClick}
+              to={item.to}
+              className={`sidebar-link ${
+                location.pathname === item.to ? 'is-active' : ''
+              }`}
+              onClick={onClose}
             >
               <span
                 className="material-symbols-outlined"
-                style={item.active ? { fontVariationSettings: '"FILL" 1' } : undefined}
+                style={
+                  location.pathname === item.to
+                    ? { fontVariationSettings: '"FILL" 1' }
+                    : undefined
+                }
               >
                 {item.icon}
               </span>
               <span>{item.label}</span>
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="sidebar-secondary">
           {secondaryItems.map((item) => (
-            <a
+            <Link
               key={item.label}
-              href="#"
+              to={item.to}
               className={`sidebar-link ${item.label === 'Sign Out' ? 'is-signout' : ''}`}
-              onClick={handleNavigationClick}
+              onClick={onClose}
             >
               <span className="material-symbols-outlined">{item.icon}</span>
               <span>{item.label}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </aside>
