@@ -2,20 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import { loadEmployeesPage } from '../api/employees';
 import EmployeeTable from '../components/EmployeeTable';
 import FiltersSidebar from '../components/FiltersSidebar';
-import { departmentFilters as staticDepts, directoryEmployees } from '../data/fallbackEmployees';
+import { directoryEmployees } from '../data/fallbackEmployees';
 import type { EmployeeDirectoryEntry } from '../types/employee';
 
 const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
 const defaultSelectedDepartments: string[] = [];
 
-interface DepartmentFilter {
-  key: string;
-  label: string;
-}
+// 🔧 Diese Liste entspricht exakt den 9 Abteilungen aus deiner Datenbank
+const departmentList = [
+  { key: 'Development', label: 'Development' },
+  { key: 'Production', label: 'Production' },
+  { key: 'Sales', label: 'Sales' },
+  { key: 'Human Resources', label: 'Human Resources' },
+  { key: 'Research', label: 'Research' },
+  { key: 'Quality Management', label: 'Quality Management' },
+  { key: 'Marketing', label: 'Marketing' },
+  { key: 'Finance', label: 'Finance' },
+  { key: 'Customer Service', label: 'Customer Service' },
+];
 
 export default function EmployeeDirectoryPage() {
-  const [dynamicDepartments, setDynamicDepartments] = useState<DepartmentFilter[]>(staticDepts);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
@@ -25,18 +32,6 @@ export default function EmployeeDirectoryPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Lade die echten Abteilungen einmal
-  useEffect(() => {
-    fetch('/api/reports/headcount')
-      .then(r => r.json())
-      .then((data: any[]) => {
-        if (data.length > 0) {
-          setDynamicDepartments(data.map((d: any) => ({ key: d.dept_name, label: d.dept_name })));
-        }
-      })
-      .catch(() => {}); // bei Fehler bleiben die statischen
-  }, []);
 
   useEffect(() => {
     if (!useBackendData) return;
@@ -125,7 +120,7 @@ export default function EmployeeDirectoryPage() {
       </section>
       <section className="content-grid">
         <FiltersSidebar
-          departments={dynamicDepartments}
+          departments={departmentList}
           selectedDepartments={selectedDepartments}
           onToggleDepartment={(dept) =>
             setSelectedDepartments(prev =>
