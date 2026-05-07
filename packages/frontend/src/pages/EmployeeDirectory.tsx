@@ -15,6 +15,7 @@ interface DeptFilter {
 }
 
 export default function EmployeeDirectoryPage() {
+  const [allDepartments, setAllDepartments] = useState<DeptFilter[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
@@ -25,7 +26,36 @@ export default function EmployeeDirectoryPage() {
   const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // ---- Daten laden ----
+  // Abteilungen aus Headcount-API laden (zuverlässig und vollständig)
+  useEffect(() => {
+    fetch('/api/reports/headcount')
+      .then(r => r.json())
+      .then((data: any[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const departments = data.map((d: any) => ({
+            key: d.dept_name,
+            label: d.dept_name,
+          }));
+          setAllDepartments(departments);
+        }
+      })
+      .catch(() => {
+        // hartcodierter Fallback, falls API nicht erreichbar
+        setAllDepartments([
+          { key: 'Development', label: 'Development' },
+          { key: 'Production', label: 'Production' },
+          { key: 'Sales', label: 'Sales' },
+          { key: 'Human Resources', label: 'Human Resources' },
+          { key: 'Research', label: 'Research' },
+          { key: 'Quality Management', label: 'Quality Management' },
+          { key: 'Marketing', label: 'Marketing' },
+          { key: 'Finance', label: 'Finance' },
+          { key: 'Customer Service', label: 'Customer Service' },
+        ]);
+      });
+  }, []);
+
+  // Mitarbeiter laden
   useEffect(() => {
     if (!useBackendData) return;
 
@@ -45,7 +75,7 @@ export default function EmployeeDirectoryPage() {
           return;
         }
 
-        // Daten normalisieren: department und fullName immer vorhanden
+        // Normalisiere: fullName und department (aus dept_name) immer vorhanden
         const normalizedRows = payload.rows.map((emp: any) => ({
           ...emp,
           fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
@@ -74,17 +104,7 @@ export default function EmployeeDirectoryPage() {
     return () => controller.abort();
   }, [page]);
 
-  // ---- Abteilungen aus den geladenen Daten extrahieren ----
-  const departments: DeptFilter[] = useMemo(() => {
-    const deptSet = new Set<string>();
-    rows.forEach((r) => {
-      const d = r.department || r.dept_name || '';
-      if (d) deptSet.add(d);
-    });
-    return Array.from(deptSet).sort().map((d) => ({ key: d, label: d }));
-  }, [rows]);
-
-  // ---- Gefilterte Liste ----
+  // Filterlogik
   const visibleEmployees = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return rows.filter(emp => {
@@ -133,7 +153,7 @@ export default function EmployeeDirectoryPage() {
       </section>
       <section className="content-grid">
         <FiltersSidebar
-          departments={departments}
+          departments={allDepartments}
           selectedDepartments={selectedDepartments}
           onToggleDepartment={(dept) =>
             setSelectedDepartments(prev =>
