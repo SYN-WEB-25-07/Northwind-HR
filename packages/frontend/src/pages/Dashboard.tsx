@@ -1,15 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
 } from 'recharts';
 import {
   fetchHeadcount,
@@ -18,10 +10,7 @@ import {
   fetchDeptSalaryAvg,
 } from '../api/reports';
 
-const COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff6361',
-  '#bc5090', '#36a2eb', '#e7e9ed', '#003f5c',
-];
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff6361', '#bc5090', '#36a2eb', '#e7e9ed', '#003f5c'];
 
 export default function Dashboard() {
   const [headcount, setHeadcount] = useState<any[]>([]);
@@ -51,7 +40,6 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-grid">
-      {/* Headcount */}
       <section className="card">
         <h2>Mitarbeiter pro Abteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
@@ -64,38 +52,28 @@ export default function Dashboard() {
           </BarChart>
         </ResponsiveContainer>
       </section>
-
-      {/* Gehaltsverteilung */}
       <section className="card">
         <h2>Gehaltsverteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={salaryDist} dataKey="count" nameKey="range" cx="50%" cy="50%" outerRadius={100} label>
-              {salaryDist.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
+              {salaryDist.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
             </Pie>
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
       </section>
-
-      {/* Gender-Verteilung */}
       <section className="card">
         <h2>Gender-Verteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie data={genderDist} dataKey="count" nameKey="gender" cx="50%" cy="50%" outerRadius={100} label>
-              {genderDist.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
+              {genderDist.map((_, i) => <Cell key={`cell-${i}`} fill={COLORS[i % COLORS.length]} />)}
             </Pie>
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
       </section>
-
-      {/* Durchschnittsgehalt pro Abteilung */}
       <section className="card">
         <h2>Durchschnittsgehalt pro Abteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
