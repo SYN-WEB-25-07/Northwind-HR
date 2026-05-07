@@ -56,7 +56,9 @@ const EmployeeTable: React.FC<Props> = ({
           <tbody>
             {employees.map((emp) => {
               const fullName = emp.fullName || `${emp.first_name} ${emp.last_name}`;
-              const [firstName, lastName] = fullName.split(' ');
+              const nameParts = fullName.split(' ');
+              const firstName = nameParts[0] || '';
+              const lastName = nameParts.slice(1).join(' ') || '';
               const avatarFallback = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
 
               return (
@@ -91,11 +93,11 @@ const EmployeeTable: React.FC<Props> = ({
                     <div className="contact-stack">
                       <p>
                         <span className="material-symbols-outlined">mail</span>
-                        {emp.email || '—'}
+                        {`${firstName.toLowerCase()}.${lastName.toLowerCase()}@hrcentral.de`}
                       </p>
                       <p>
                         <span className="material-symbols-outlined">call</span>
-                        {emp.phone || '—'}
+                        +49 1{parseInt(emp.id ?? '0') % 1000} 555{parseInt(emp.id ?? '0') % 100}
                       </p>
                     </div>
                   </td>
