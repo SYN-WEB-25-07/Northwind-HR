@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import React from 'react';
 import type { EmployeeDirectoryEntry } from '../types/employee';
 
 interface EmployeeTableProps {
@@ -13,7 +13,7 @@ interface EmployeeTableProps {
   errorMessage: string | null;
 }
 
-const EmployeeTable = ({
+const EmployeeTable: React.FC<EmployeeTableProps> = ({
   employees,
   totalEmployees,
   page,
@@ -22,174 +22,105 @@ const EmployeeTable = ({
   to,
   onPageChange,
   isLoading,
-  errorMessage
-}: EmployeeTableProps): JSX.Element => {
-  const paginationIndexes = useMemo(() => {
-    const maxVisiblePages = 3;
-    const current = Math.min(Math.max(page, 1), totalPages);
+  errorMessage,
+}) => {
+  if (isLoading) {
+    return (
+      <section className="employee-table">
+        <p>Daten werden geladen …</p>
+      </section>
+    );
+  }
 
-    let start = Math.max(1, current - 1);
-    let end = Math.min(totalPages, start + maxVisiblePages - 1);
-
-    if (end - start + 1 < maxVisiblePages) {
-      start = Math.max(1, end - maxVisiblePages + 1);
-    }
-
-    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
-  }, [page, totalPages]);
+  if (errorMessage) {
+    return (
+      <section className="employee-table">
+        <div className="error-banner">{errorMessage}</div>
+      </section>
+    );
+  }
 
   return (
-    <section className="directory-table-card" aria-label="Mitarbeiter-Verzeichnis Tabelle">
-      <div className="table-scroll-wrap">
-        <table className="directory-table">
-          <thead>
-            <tr>
-              <th>
-                <span>Mitarbeiter</span>
-                <span className="material-symbols-outlined tiny-icon">unfold_more</span>
-              </th>
-              <th>Rolle / Abteilung</th>
-              <th>Status</th>
-              <th>Kontakt</th>
-              <th className="th-actions">Aktionen</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={5} className="table-feedback-row">
-                  Mitarbeiter werden geladen...
-                </td>
-              </tr>
-            )}
-
-            {!isLoading && errorMessage && (
-              <tr>
-                <td colSpan={5} className="table-feedback-row warning">
-                  {errorMessage}
-                </td>
-              </tr>
-            )}
-
-            {!isLoading &&
-              employees.map((employee, index) => (
-                <tr key={`${employee.employeeCode}-${index}`}>
-                  <td>
-                    <div className="employee-main-cell">
-                      <div className="avatar-wrap">
-                        {employee.avatar ? (
-                          <img
-                            src={employee.avatar}
-                            alt={employee.fullName}
-                            className="employee-avatar"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="employee-avatar avatar-fallback">
-                            {employee.fullName
-                              .split(' ')
-                              .map((part) => part.charAt(0))
-                              .join('')
-                              .slice(0, 2)}
-                          </div>
-                        )}
-                        <span className={`presence-dot tone-${employee.presenceTone}`} />
-                      </div>
-                      <div>
-                        <p className="employee-name">{employee.fullName}</p>
-                        <p className="employee-id">Mitarbeiter-ID: #{employee.employeeCode}</p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td>
-                    <p className="employee-role">{employee.role}</p>
-                    <p className="employee-dept">{employee.department}</p>
-                  </td>
-
-                  <td>
-                    <span className={`status-badge tone-${employee.statusTone}`}>
-                      <span className={`status-dot tone-${employee.statusTone}`} />
-                      {employee.status}
-                    </span>
-                  </td>
-
-                  <td>
-                    <div className="contact-stack">
-                      <p>
-                        <span className="material-symbols-outlined tiny-icon">mail</span>
-                        <span>{employee.email}</span>
-                      </p>
-                      <p>
-                        <span className="material-symbols-outlined tiny-icon">call</span>
-                        <span>{employee.phone}</span>
-                      </p>
-                    </div>
-                  </td>
-
-                  <td className="actions-cell">
-                    <button type="button" className="icon-button" aria-label="Mehr Optionen">
-                      <span className="material-symbols-outlined">more_vert</span>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-
-            {!isLoading && !errorMessage && employees.length === 0 && (
-              <tr>
-                <td colSpan={5} className="table-feedback-row">
-                  Keine Mitarbeiter für die aktuelle Suche gefunden.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+    <section className="employee-table">
+      <div className="table-toolbar">
+        <p>
+          Zeige {from} bis {to} von {totalEmployees} Mitarbeitern
+        </p>
       </div>
 
-      <div className="table-footer">
-        <p>
-          Zeige <strong>{from}</strong> bis <strong>{to}</strong> von <strong>{totalEmployees}</strong>{' '}
-          Mitarbeitern
-        </p>
+      <table>
+        <thead>
+          <tr>
+            <th>MITARBEITER</th>
+            <th>ROLLE / ABTEILUNG</th>
+            <th>STATUS</th>
+            <th>KONTAKT</th>
+            <th>AKTIONEN</th>
+          </tr>
+        </thead>
+        <tbody>
+          {employees.map((employee) => {
+            // 🔧 Fallback: falls fullName fehlt, aus Vor‑ und Nachnamen zusammenbauen
+            const fullName = employee.fullName || `${employee.first_name} ${employee.last_name}`;
+            const [firstName, lastName] = fullName.split(' ');
 
-        <div className="pagination-actions" aria-label="Pagination">
-          <button
-            type="button"
-            className="page-arrow"
-            disabled={page <= 1}
-            onClick={() => onPageChange(page - 1)}
-            aria-label="Vorherige Seite"
-          >
-            <span className="material-symbols-outlined">chevron_left</span>
-          </button>
+            return (
+              <tr key={employee.id || employee.fullName}>
+                <td className="employee-info">
+                  <div className="employee-name">
+                    <span>{fullName}</span>
+                    <small>Mitarbeiter-ID: #{employee.id}</small>
+                  </div>
+                </td>
+                <td>
+                  <div>{employee.role || employee.title}</div>
+                  <small>{employee.department || employee.dept_name}</small>
+                </td>
+                <td>
+                  <span className="status-badge">Aktiv</span>
+                </td>
+                <td>
+                  <div className="contact-icons">
+                    <span className="material-symbols-outlined">mail</span>
+                    <span>{employee.email || '—'}</span>
+                  </div>
+                  <div className="contact-icons">
+                    <span className="material-symbols-outlined">call</span>
+                    <span>{employee.phone || '—'}</span>
+                  </div>
+                </td>
+                <td>
+                  <button className="action-button">
+                    <span className="material-symbols-outlined">more_vert</span>
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
 
-          {paginationIndexes.map((index) => (
-            <button
-              key={index}
-              type="button"
-              className={`page-index ${index === page ? 'is-current' : ''}`}
-              onClick={() => onPageChange(index)}
-              aria-label={`Seite ${index}`}
-              aria-current={index === page ? 'page' : undefined}
-            >
-              {index}
-            </button>
-          ))}
-
-          <button
-            type="button"
-            className="page-arrow"
-            disabled={page >= totalPages}
-            onClick={() => onPageChange(page + 1)}
-            aria-label="Nächste Seite"
-          >
-            <span className="material-symbols-outlined">chevron_right</span>
-          </button>
-        </div>
+      <div className="pagination">
+        <button
+          disabled={page <= 1}
+          onClick={() => onPageChange(page - 1)}
+          className="pagination-button"
+        >
+          <span className="material-symbols-outlined">chevron_left</span>
+        </button>
+        <span>
+          Seite {page} von {totalPages}
+        </span>
+        <button
+          disabled={page >= totalPages}
+          onClick={() => onPageChange(page + 1)}
+          className="pagination-button"
+        >
+          <span className="material-symbols-outlined">chevron_right</span>
+        </button>
       </div>
     </section>
   );
 };
 
-export default memo(EmployeeTable);
+export default EmployeeTable;
