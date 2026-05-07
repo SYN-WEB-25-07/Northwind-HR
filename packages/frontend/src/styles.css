@@ -1020,3 +1020,26 @@ input {
     padding: 1rem;
   }
 }
+
+@media (max-width: 1024px) {
+  /* … bereits vorhandene Regeln … */
+
+  .dashboard-sidebar.is-mobile-open {
+    z-index: 100;                    /* ← neu, damit es vor dem Header liegt */
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+    background: var(--surface-panel); /* ← damit es undurchsichtig ist */
+  }
+
+  .sidebar-backdrop.is-visible {
+    z-index: 99;                     /* ← damit es hinter der Sidebar, aber vor dem Inhalt liegt */
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* Optionale Ergänzung: Header selbst absenken, falls nötig */
+  .dashboard-header {
+    z-index: 50;                     /* ← Header bleibt unter dem Menü */
+  }
+}

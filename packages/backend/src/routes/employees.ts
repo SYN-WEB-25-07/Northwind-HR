@@ -3,7 +3,7 @@ import pool from '../db';
 
 const router = Router();
 
-// Liste
+// GET /api/employees – Pagination + Filter (Mehrfach)
 router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
@@ -27,6 +27,7 @@ router.get('/', async (req, res) => {
     `;
     const params: any[] = [];
 
+    // Mehrfachfilter – Komma‑Liste
     if (deptParam) {
       const depts = deptParam.split(',').map(d => d.trim()).filter(d => d.length > 0);
       if (depts.length > 0) {
@@ -75,7 +76,7 @@ router.get('/top-paid', async (req, res) => {
   }
 });
 
-// Einzeldetail
+// GET /api/employees/:id – Einzeldetail
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
