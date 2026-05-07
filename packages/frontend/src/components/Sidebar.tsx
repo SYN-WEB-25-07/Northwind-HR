@@ -1,17 +1,15 @@
 import { memo } from 'react';
-import type { MouseEvent } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface NavItem {
   icon: string;
   label: string;
-  active?: boolean;
-  to: string;        // neu: Pfad für react-router
+  to: string;
 }
 
 const navItems: NavItem[] = [
   { icon: 'dashboard', label: 'Dashboard', to: '/' },
-  { icon: 'groups', label: 'Employee Directory', active: true, to: '/employees' },
+  { icon: 'groups', label: 'Employee Directory', to: '/employees' },
   { icon: 'domain', label: 'Departments', to: '/departments' },
   { icon: 'payments', label: 'Payroll', to: '/payroll' },
   { icon: 'description', label: 'Documents', to: '/documents' }
