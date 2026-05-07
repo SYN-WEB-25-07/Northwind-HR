@@ -13,25 +13,23 @@ import {
 const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#ff6361', '#bc5090', '#36a2eb', '#e7e9ed', '#003f5c'];
 
 export default function Dashboard() {
-  const [headcount, setHeadcount] = useState<any[]>([]);
-  const [salaryDist, setSalaryDist] = useState<any[]>([]);
-  const [genderDist, setGenderDist] = useState<any[]>([]);
-  const [deptAvg, setDeptAvg] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [headcount, setHeadcount] = useState<any[] | null>(null);
+  const [salaryDist, setSalaryDist] = useState<any[] | null>(null);
+  const [genderDist, setGenderDist] = useState<any[] | null>(null);
+  const [deptAvg, setDeptAvg] = useState<any[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
-      fetchHeadcount(),
-      fetchSalaryDistribution(),
-      fetchGenderDistribution(),
-      fetchDeptSalaryAvg(),
-    ])
-      .then(([h, s, g, d]) => { setHeadcount(h); setSalaryDist(s); setGenderDist(g); setDeptAvg(d); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+      fetchHeadcount().then(setHeadcount),
+      fetchSalaryDistribution().then(setSalaryDist),
+      fetchGenderDistribution().then(setGenderDist),
+      fetchDeptSalaryAvg().then(setDeptAvg),
+    ]).catch((err) => { console.error(err); setError('Fehler beim Laden der Dashboard-Daten.'); });
   }, []);
 
-  if (loading) return <p style={{ padding: 20 }}>Dashboard wird geladen …</p>;
+  if (error) return <div style={{ padding: 20 }}>{error}</div>;
+  if (!headcount || !salaryDist || !genderDist || !deptAvg) return <div style={{ padding: 20 }}>Dashboard wird geladen …</div>;
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem', padding: '1.5rem' }}>
@@ -47,6 +45,7 @@ export default function Dashboard() {
           </BarChart>
         </ResponsiveContainer>
       </div>
+
       <div className="filters-card">
         <h2 style={{ marginBottom: '1rem' }}>Gehaltsverteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
@@ -58,6 +57,7 @@ export default function Dashboard() {
           </PieChart>
         </ResponsiveContainer>
       </div>
+
       <div className="filters-card">
         <h2 style={{ marginBottom: '1rem' }}>Gender-Verteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
@@ -69,6 +69,7 @@ export default function Dashboard() {
           </PieChart>
         </ResponsiveContainer>
       </div>
+
       <div className="filters-card">
         <h2 style={{ marginBottom: '1rem' }}>Durchschnittsgehalt pro Abteilung</h2>
         <ResponsiveContainer width="100%" height={300}>
