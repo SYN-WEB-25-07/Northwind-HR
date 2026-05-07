@@ -3,13 +3,13 @@ import pool from '../db';
 
 const router = Router();
 
-// GET /api/employees – Pagination, Filter
+// Liste
 router.get('/', async (req, res) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = (page - 1) * limit;
-    const dept = req.query.dept as string;
+    const deptParam = req.query.dept as string | undefined;
 
     let query = `
       SELECT e.id,
@@ -27,9 +27,12 @@ router.get('/', async (req, res) => {
     `;
     const params: any[] = [];
 
-    if (dept) {
-      params.push(dept);
-      query += ` AND d.dept_name = $${params.length}`;
+    if (deptParam) {
+      const depts = deptParam.split(',').map(d => d.trim()).filter(d => d.length > 0);
+      if (depts.length > 0) {
+        query += ` AND d.dept_name IN (${depts.map((_, i) => `$${params.length + i + 1}`).join(',')})`;
+        params.push(...depts);
+      }
     }
 
     const countResult = await pool.query('SELECT COUNT(*) FROM employees.employee');
@@ -52,7 +55,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/employees/top-paid – ⚠️ MUSS VOR /:id STEHEN
+// ⚠️ top-paid MUSS VOR :id STEHEN
 router.get('/top-paid', async (req, res) => {
   try {
     const { rows } = await pool.query(`
@@ -72,7 +75,7 @@ router.get('/top-paid', async (req, res) => {
   }
 });
 
-// GET /api/employees/:id – Einzeldetail
+// Einzeldetail
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
