@@ -1,21 +1,11 @@
-interface DepartmentFilter {
-  key: string;
-  label: string;
-}
-
+interface DepartmentFilter { key: string; label: string; }
 interface Props {
   departments: DepartmentFilter[];
-  selectedDepartment: string;
-  onSelectDepartment: (dept: string) => void;
+  selectedDepartments: string[];
+  onToggleDepartment: (dept: string) => void;
   onReset: () => void;
 }
-
-export default function FiltersSidebar({
-  departments,
-  selectedDepartment,
-  onSelectDepartment,
-  onReset,
-}: Props) {
+export default function FiltersSidebar({ departments, selectedDepartments, onToggleDepartment, onReset }: Props) {
   return (
     <div className="filters-column">
       <div className="filters-card">
@@ -25,21 +15,14 @@ export default function FiltersSidebar({
             {departments.map((d) => (
               <label key={d.key} className="filter-checkbox-row">
                 <div className="checkbox-wrap">
-                  <input
-                    type="radio"
-                    name="department"
-                    checked={selectedDepartment === d.key}
-                    onChange={() => onSelectDepartment(d.key)}
-                  />
+                  <input type="checkbox" checked={selectedDepartments.includes(d.key)} onChange={() => onToggleDepartment(d.key)} />
                   {d.label}
                 </div>
               </label>
             ))}
           </div>
         </div>
-        <button className="reset-button" onClick={onReset}>
-          Filter zurücksetzen
-        </button>
+        <button className="reset-button" onClick={onReset}>Filter zurücksetzen</button>
       </div>
     </div>
   );

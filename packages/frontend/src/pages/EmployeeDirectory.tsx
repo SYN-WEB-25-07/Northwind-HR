@@ -7,23 +7,17 @@ import type { EmployeeDirectoryEntry } from '../types/employee';
 
 const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
-const defaultSelectedDepartment = '';
-
-
+const defaultSelectedDepartments: string[] = [];
 const departmentList = [
-  { key: 'Development', label: 'Development' },
-  { key: 'Production', label: 'Production' },
-  { key: 'Sales', label: 'Sales' },
-  { key: 'Human Resources', label: 'Human Resources' },
-  { key: 'Research', label: 'Research' },
-  { key: 'Quality Management', label: 'Quality Management' },
-  { key: 'Marketing', label: 'Marketing' },
-  { key: 'Finance', label: 'Finance' },
+  { key: 'Development', label: 'Development' }, { key: 'Production', label: 'Production' },
+  { key: 'Sales', label: 'Sales' }, { key: 'Human Resources', label: 'Human Resources' },
+  { key: 'Research', label: 'Research' }, { key: 'Quality Management', label: 'Quality Management' },
+  { key: 'Marketing', label: 'Marketing' }, { key: 'Finance', label: 'Finance' },
   { key: 'Customer Service', label: 'Customer Service' },
 ];
 
 export default function EmployeeDirectoryPage() {
-  const [selectedDepartment, setSelectedDepartment] = useState(defaultSelectedDepartment);
+  const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [rows, setRows] = useState<EmployeeDirectoryEntry[]>([]);
   const [totalEmployees, setTotalEmployees] = useState(0);
   const [serverPages, setServerPages] = useState(1);
@@ -34,64 +28,40 @@ export default function EmployeeDirectoryPage() {
 
   useEffect(() => {
     if (!useBackendData) return;
-
     const controller = new AbortController();
-
     const run = async () => {
       setIsLoading(true);
       try {
-        const payload = await loadEmployeesPage({
-          page,
-          limit: rowsPerPage,
-          signal: controller.signal,
-          dept: selectedDepartment || undefined,   // ← Abteilung an Backend senden
-        });
-
+        const deptString = selectedDepartments.length > 0 ? selectedDepartments.join(',') : undefined;
+        const payload = await loadEmployeesPage({ page, limit: rowsPerPage, signal: controller.signal, dept: deptString });
         if (payload.total === 0 || payload.data.length === 0) {
-          setRows(directoryEmployees as any);
-          setTotalEmployees(directoryEmployees.length);
+          setRows(directoryEmployees as any); setTotalEmployees(directoryEmployees.length);
           setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
-          setIsUsingFallbackData(true);
-          setErrorMessage('Keine Daten aus Postgres erhalten. Fallback aktiv.');
+          setIsUsingFallbackData(true); setErrorMessage('Keine Daten aus Postgres erhalten. Fallback aktiv.');
           return;
         }
-
-        const normalizedRows = payload.data.map((emp: any) => ({
-          ...emp,
-          fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
-          department: emp.department || '',
-        })) as EmployeeDirectoryEntry[];
-
+        const normalizedRows = payload.data.map((emp: any) => ({ ...emp, fullName: emp.fullName || `${emp.first_name || ''} ${emp.last_name || ''}`.trim(), department: emp.department || '' })) as EmployeeDirectoryEntry[];
         setRows(normalizedRows);
-        setTotalEmployees(payload.pagination.total);
-        setServerPages(payload.pagination.pages);
-        setIsUsingFallbackData(false);
-        setErrorMessage(null);
+        setTotalEmployees(payload.pagination.total); setServerPages(payload.pagination.pages);
+        setIsUsingFallbackData(false); setErrorMessage(null);
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          setRows(directoryEmployees as any);
-          setTotalEmployees(directoryEmployees.length);
+          setRows(directoryEmployees as any); setTotalEmployees(directoryEmployees.length);
           setServerPages(Math.ceil(directoryEmployees.length / rowsPerPage));
-          setIsUsingFallbackData(true);
-          setErrorMessage('Postgres nicht erreichbar. Fallback aktiv.');
+          setIsUsingFallbackData(true); setErrorMessage('Postgres nicht erreichbar. Fallback aktiv.');
         }
-      } finally {
-        setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
     };
-
     void run();
     return () => controller.abort();
-  }, [page, selectedDepartment]);   // ← Filterwechsel löst neuen API‑Call aus
+  }, [page, selectedDepartments]);
 
-  const visibleEmployees = rows;   // kein clientseitiger Filter mehr
-
+  const visibleEmployees = rows;
   const totalPages = useMemo(() => {
     if (useBackendData && !isUsingFallbackData) return Math.max(1, serverPages);
     return Math.max(1, Math.ceil(visibleEmployees.length / rowsPerPage));
   }, [visibleEmployees.length, serverPages, isUsingFallbackData]);
-
-  useEffect(() => { setPage(1); }, [selectedDepartment]);
+  useEffect(() => { setPage(1); }, [selectedDepartments]);
 
   const displayTotal = useBackendData && !isUsingFallbackData ? totalEmployees : visibleEmployees.length;
   const from = visibleEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
@@ -100,37 +70,12 @@ export default function EmployeeDirectoryPage() {
   return (
     <>
       <section className="toolbar-row">
-        <div>
-          <h2>Mitarbeiterverzeichnis</h2>
-          <div className="breadcrumbs">
-            <span>Übersicht</span>
-            <span className="material-symbols-outlined">chevron_right</span>
-            <span className="is-current">Alle Mitarbeiter</span>
-          </div>
-        </div>
-        <button className="primary-action">
-          <span className="material-symbols-outlined">person_add</span>
-          <span>Neuen Mitarbeiter hinzufügen</span>
-        </button>
+        <div><h2>Mitarbeiterverzeichnis</h2><div className="breadcrumbs"><span>Übersicht</span><span className="material-symbols-outlined">chevron_right</span><span className="is-current">Alle Mitarbeiter</span></div></div>
+        <button className="primary-action"><span className="material-symbols-outlined">person_add</span><span>Neuen Mitarbeiter hinzufügen</span></button>
       </section>
       <section className="content-grid">
-        <FiltersSidebar
-          departments={departmentList}
-          selectedDepartment={selectedDepartment}
-          onSelectDepartment={(dept) => setSelectedDepartment(dept)}
-          onReset={() => setSelectedDepartment(defaultSelectedDepartment)}
-        />
-        <EmployeeTable
-          employees={visibleEmployees}
-          totalEmployees={displayTotal}
-          page={page}
-          totalPages={totalPages}
-          from={from}
-          to={to}
-          onPageChange={setPage}
-          isLoading={isLoading}
-          errorMessage={errorMessage}
-        />
+        <FiltersSidebar departments={departmentList} selectedDepartments={selectedDepartments} onToggleDepartment={(dept) => setSelectedDepartments(prev => prev.includes(dept) ? prev.filter(d => d !== dept) : [...prev, dept])} onReset={() => setSelectedDepartments(defaultSelectedDepartments)} />
+        <EmployeeTable employees={visibleEmployees} totalEmployees={displayTotal} page={page} totalPages={totalPages} from={from} to={to} onPageChange={setPage} isLoading={isLoading} errorMessage={errorMessage} />
       </section>
     </>
   );
