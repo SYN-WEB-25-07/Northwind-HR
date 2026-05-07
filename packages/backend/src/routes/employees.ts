@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET /api/employees/top-paid – ❗ MUSS VOR /:id STEHEN
+// GET /api/employees/top-paid – ⚠️ MUSS VOR /:id STEHEN
 router.get('/top-paid', async (req, res) => {
   try {
     const { rows } = await pool.query(`
