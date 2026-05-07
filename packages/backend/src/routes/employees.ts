@@ -6,10 +6,22 @@ const router = Router();
 // GET /api/employees – Pagination, Filter
 router.get('/', async (req, res) => {
   try {
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
+    const requestedPage = parseInt(req.query.page as string, 10);
+    const requestedLimit = parseInt(req.query.limit as string, 10);
+    const page = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+    const limit = Number.isFinite(requestedLimit) && requestedLimit > 0 ? requestedLimit : 20;
     const offset = (page - 1) * limit;
     const dept = req.query.dept as string;
+
+    let countQuery = `
+      SELECT COUNT(*)
+      FROM employees.employee e
+      JOIN employees.department_employee de ON e.id = de.employee_id
+      JOIN employees.department d ON de.department_id = d.id
+      JOIN employees.title t ON e.id = t.employee_id
+      WHERE de.to_date = '9999-01-01'
+        AND t.to_date = '9999-01-01'
+    `;
 
     let query = `
       SELECT e.id, e.first_name, e.last_name, e.gender, e.hire_date,
@@ -21,14 +33,17 @@ router.get('/', async (req, res) => {
       WHERE de.to_date = '9999-01-01'
         AND t.to_date = '9999-01-01'
     `;
-    const params: any[] = [];
+    const params: unknown[] = [];
+    const countParams: unknown[] = [];
 
     if (dept) {
       params.push(dept);
+      countParams.push(dept);
       query += ` AND d.dept_name = $${params.length}`;
+      countQuery += ` AND d.dept_name = $${countParams.length}`;
     }
 
-    const countResult = await pool.query('SELECT COUNT(*) FROM employees.employee');
+    const countResult = await pool.query(countQuery, countParams);
     const total = parseInt(countResult.rows[0].count, 10);
 
     params.push(limit);
@@ -47,31 +62,6 @@ router.get('/', async (req, res) => {
         pages: Math.ceil(total / limit)
       }
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-// GET /api/employees/top-paid – Top 10 Gehälter
-router.get('/top-paid', async (req, res) => {
-  try {
-    const { rows } = await pool.query(`
-      SELECT e.id, e.first_name, e.last_name, s.amount AS salary,
-             t.title, d.dept_name
-      FROM employees.employee e
-      JOIN employees.salary s
-        ON e.id = s.employee_id AND s.to_date = '9999-01-01'
-      JOIN employees.title t
-        ON e.id = t.employee_id AND t.to_date = '9999-01-01'
-      JOIN employees.department_employee de
-        ON e.id = de.employee_id AND de.to_date = '9999-01-01'
-      JOIN employees.department d
-        ON de.department_id = d.id
-      ORDER BY s.amount DESC
-      LIMIT 10
-    `);
-    res.json(rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal Server Error' });

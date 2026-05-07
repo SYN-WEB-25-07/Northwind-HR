@@ -11,7 +11,7 @@ import {
 } from './data/fallbackEmployees';
 import type { EmployeeDirectoryEntry } from './types/employee';
 
-const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA === 'true';
+const useBackendData = import.meta.env.VITE_USE_BACKEND_DATA !== 'false';
 const rowsPerPage = 4;
 const defaultSelectedDepartments: string[] = [];
 
@@ -20,11 +20,14 @@ const App = (): JSX.Element => {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>(defaultSelectedDepartments);
   const [selectedLocation, setSelectedLocation] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [rows, setRows] = useState<EmployeeDirectoryEntry[]>(directoryEmployees);
-  const [totalEmployees, setTotalEmployees] = useState(directoryEmployees.length);
-  const [serverPages, setServerPages] = useState(Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage)));
+  const [rows, setRows] = useState<EmployeeDirectoryEntry[]>(useBackendData ? [] : directoryEmployees);
+  const [totalEmployees, setTotalEmployees] = useState(useBackendData ? 0 : directoryEmployees.length);
+  const [serverPages, setServerPages] = useState(
+    useBackendData ? 1 : Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage))
+  );
+  const [isUsingFallbackData, setIsUsingFallbackData] = useState(!useBackendData);
   const [page, setPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(useBackendData);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +74,17 @@ const App = (): JSX.Element => {
       setIsLoading(true);
       try {
         const payload = await loadEmployeesPage({ page, limit: rowsPerPage, signal: controller.signal });
+
+        if (payload.total === 0 || payload.rows.length === 0) {
+          setRows(directoryEmployees);
+          setTotalEmployees(directoryEmployees.length);
+          setServerPages(Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage)));
+          setPage(1);
+          setIsUsingFallbackData(true);
+          setErrorMessage('Keine Daten aus Postgres erhalten. Fallback-Daten aktiv.');
+          return;
+        }
+
         setRows((previousRows) =>
           payload.rows.map((employee, index) => ({
             ...employee,
@@ -80,6 +94,7 @@ const App = (): JSX.Element => {
         setTotalEmployees(payload.total);
         setServerPages(payload.pages);
         setPage(payload.page);
+        setIsUsingFallbackData(false);
         setErrorMessage(null);
       } catch (error) {
         if ((error as Error).name !== 'AbortError') {
@@ -87,7 +102,8 @@ const App = (): JSX.Element => {
           setTotalEmployees(directoryEmployees.length);
           setServerPages(Math.max(1, Math.ceil(directoryEmployees.length / rowsPerPage)));
           setPage(1);
-          setErrorMessage('Backend konnte nicht geladen werden. Fallback-Daten aktiv.');
+          setIsUsingFallbackData(true);
+          setErrorMessage('Postgres nicht erreichbar. Fallback-Daten aktiv.');
         }
       } finally {
         setIsLoading(false);
@@ -124,12 +140,12 @@ const App = (): JSX.Element => {
     selectedDepartments.length > 0 || Boolean(selectedLocation) || searchQuery.trim().length > 0;
 
   const totalPages = useMemo(() => {
-    if (useBackendData && !filterIsActive) {
+    if (useBackendData && !isUsingFallbackData && !filterIsActive) {
       return Math.max(1, serverPages);
     }
 
     return Math.max(1, Math.ceil(visibleEmployees.length / rowsPerPage));
-  }, [visibleEmployees.length, serverPages, filterIsActive]);
+  }, [visibleEmployees.length, serverPages, filterIsActive, isUsingFallbackData]);
 
   useEffect(() => {
     setPage(1);
@@ -142,22 +158,20 @@ const App = (): JSX.Element => {
   }, [page, totalPages]);
 
   const pagedEmployees = useMemo(() => {
-    if (useBackendData && !filterIsActive) {
+    if (useBackendData && !isUsingFallbackData && !filterIsActive) {
       return visibleEmployees;
     }
 
     const startIndex = (page - 1) * rowsPerPage;
     return visibleEmployees.slice(startIndex, startIndex + rowsPerPage);
-  }, [visibleEmployees, page, filterIsActive]);
+  }, [visibleEmployees, page, filterIsActive, isUsingFallbackData]);
 
-  const displayTotalEmployees = useBackendData && !filterIsActive ? totalEmployees : visibleEmployees.length;
-  const displayFrom =
-    pagedEmployees.length > 0 ? (useBackendData && !filterIsActive ? (page - 1) * rowsPerPage + 1 : (page - 1) * rowsPerPage + 1) : 0;
+  const displayTotalEmployees =
+    useBackendData && !isUsingFallbackData && !filterIsActive ? totalEmployees : visibleEmployees.length;
+  const displayFrom = pagedEmployees.length > 0 ? (page - 1) * rowsPerPage + 1 : 0;
   const displayTo =
     pagedEmployees.length > 0
-      ? (useBackendData && !filterIsActive
-          ? Math.min((page - 1) * rowsPerPage + pagedEmployees.length, displayTotalEmployees)
-          : Math.min(page * rowsPerPage, displayTotalEmployees))
+      ? Math.min((page - 1) * rowsPerPage + pagedEmployees.length, displayTotalEmployees)
       : 0;
 
   const handleToggleDepartment = (department: string): void => {
