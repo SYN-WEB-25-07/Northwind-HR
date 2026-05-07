@@ -1,19 +1,19 @@
 import React from 'react';
 import type { EmployeeDirectoryEntry } from '../types/employee';
 
-interface EmployeeTableProps {
+interface Props {
   employees: EmployeeDirectoryEntry[];
   totalEmployees: number;
   page: number;
   totalPages: number;
   from: number;
   to: number;
-  onPageChange: (nextPage: number) => void;
+  onPageChange: (p: number) => void;
   isLoading: boolean;
   errorMessage: string | null;
 }
 
-const EmployeeTable: React.FC<EmployeeTableProps> = ({
+const EmployeeTable: React.FC<Props> = ({
   employees,
   totalEmployees,
   page,
@@ -26,100 +26,123 @@ const EmployeeTable: React.FC<EmployeeTableProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <section className="employee-table">
-        <p>Daten werden geladen …</p>
-      </section>
+      <div className="directory-table-card">
+        <div className="table-feedback-row">Daten werden geladen …</div>
+      </div>
     );
   }
 
   if (errorMessage) {
     return (
-      <section className="employee-table">
-        <div className="error-banner">{errorMessage}</div>
-      </section>
+      <div className="directory-table-card">
+        <div className="table-feedback-row warning">{errorMessage}</div>
+      </div>
     );
   }
 
   return (
-    <section className="employee-table">
-      <div className="table-toolbar">
+    <div className="directory-table-card">
+      <div className="table-scroll-wrap">
+        <table className="directory-table">
+          <thead>
+            <tr>
+              <th>MITARBEITER</th>
+              <th>ROLLE / ABTEILUNG</th>
+              <th>STATUS</th>
+              <th>KONTAKT</th>
+              <th className="th-actions">AKTIONEN</th>
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map((emp) => {
+              const fullName = emp.fullName || `${emp.first_name} ${emp.last_name}`;
+              const [firstName, lastName] = fullName.split(' ');
+              const avatarFallback = `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase();
+
+              return (
+                <tr key={emp.id || fullName}>
+                  <td>
+                    <div className="employee-main-cell">
+                      <div className="avatar-wrap">
+                        {emp.avatar ? (
+                          <img className="employee-avatar" src={emp.avatar} alt={fullName} />
+                        ) : (
+                          <div className="avatar-fallback employee-avatar">{avatarFallback}</div>
+                        )}
+                        <span className={`presence-dot tone-green`} />
+                      </div>
+                      <div>
+                        <p className="employee-name">{fullName}</p>
+                        <p className="employee-id">Mitarbeiter-ID: #{emp.id}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <p className="employee-role">{emp.role || emp.title}</p>
+                    <p className="employee-dept">{emp.department || emp.dept_name}</p>
+                  </td>
+                  <td>
+                    <span className="status-badge tone-green">
+                      <span className="status-dot tone-green" />
+                      Aktiv
+                    </span>
+                  </td>
+                  <td>
+                    <div className="contact-stack">
+                      <p>
+                        <span className="material-symbols-outlined">mail</span>
+                        {emp.email || '—'}
+                      </p>
+                      <p>
+                        <span className="material-symbols-outlined">call</span>
+                        {emp.phone || '—'}
+                      </p>
+                    </div>
+                  </td>
+                  <td className="actions-cell">
+                    <button className="icon-button">
+                      <span className="material-symbols-outlined">more_vert</span>
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="table-footer">
         <p>
-          Zeige {from} bis {to} von {totalEmployees} Mitarbeitern
+          Zeige <strong>{from}</strong> bis <strong>{to}</strong> von{' '}
+          <strong>{totalEmployees}</strong> Mitarbeitern
         </p>
+        <div className="pagination-actions">
+          <button
+            className="page-arrow"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+          >
+            <span className="material-symbols-outlined">chevron_left</span>
+          </button>
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={`page-index ${page === i + 1 ? 'is-current' : ''}`}
+              onClick={() => onPageChange(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            className="page-arrow"
+            disabled={page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
+          >
+            <span className="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
       </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>MITARBEITER</th>
-            <th>ROLLE / ABTEILUNG</th>
-            <th>STATUS</th>
-            <th>KONTAKT</th>
-            <th>AKTIONEN</th>
-          </tr>
-        </thead>
-        <tbody>
-          {employees.map((employee) => {
-            // 🔧 Fallback: falls fullName fehlt, aus Vor‑ und Nachnamen zusammenbauen
-            const fullName = employee.fullName || `${employee.first_name} ${employee.last_name}`;
-            const [firstName, lastName] = fullName.split(' ');
-
-            return (
-              <tr key={employee.id || employee.fullName}>
-                <td className="employee-info">
-                  <div className="employee-name">
-                    <span>{fullName}</span>
-                    <small>Mitarbeiter-ID: #{employee.id}</small>
-                  </div>
-                </td>
-                <td>
-                  <div>{employee.role || employee.title}</div>
-                  <small>{employee.department || employee.dept_name}</small>
-                </td>
-                <td>
-                  <span className="status-badge">Aktiv</span>
-                </td>
-                <td>
-                  <div className="contact-icons">
-                    <span className="material-symbols-outlined">mail</span>
-                    <span>{employee.email || '—'}</span>
-                  </div>
-                  <div className="contact-icons">
-                    <span className="material-symbols-outlined">call</span>
-                    <span>{employee.phone || '—'}</span>
-                  </div>
-                </td>
-                <td>
-                  <button className="action-button">
-                    <span className="material-symbols-outlined">more_vert</span>
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-
-      <div className="pagination">
-        <button
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-          className="pagination-button"
-        >
-          <span className="material-symbols-outlined">chevron_left</span>
-        </button>
-        <span>
-          Seite {page} von {totalPages}
-        </span>
-        <button
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-          className="pagination-button"
-        >
-          <span className="material-symbols-outlined">chevron_right</span>
-        </button>
-      </div>
-    </section>
+    </div>
   );
 };
 

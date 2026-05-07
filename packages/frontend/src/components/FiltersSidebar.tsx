@@ -14,21 +14,30 @@ export default function FiltersSidebar({
   onReset,
 }: Props) {
   return (
-    <aside className="filters-sidebar">
-      <h3>Abteilung</h3>
-      {departments.map((d) => (
-        <label key={d.key} className="filter-label">
-          <input
-            type="checkbox"
-            checked={selectedDepartments.includes(d.key)}
-            onChange={() => onToggleDepartment(d.key)}
-          />
-          <span>{d.label}</span>
-        </label>
-      ))}
-      <button className="reset-button" onClick={onReset}>
-        Filter zurücksetzen
-      </button>
-    </aside>
+    <div className="filters-column">
+      <div className="filters-card">
+        <h3 className="filters-title">Abteilung</h3>
+        <div className="filter-group">
+          <div className="filter-items">
+            {departments.map((d) => (
+              <label key={d.key} className="filter-checkbox-row">
+                <div className="checkbox-wrap">
+                  <input
+                    type="checkbox"
+                    checked={selectedDepartments.includes(d.key)}
+                    onChange={() => onToggleDepartment(d.key)}
+                  />
+                  {d.label}
+                </div>
+                {/* Hier könnte man die Anzahl pro Abteilung anzeigen, wenn vorhanden */}
+              </label>
+            ))}
+          </div>
+        </div>
+        <button className="reset-button" onClick={onReset}>
+          Filter zurücksetzen
+        </button>
+      </div>
+    </div>
   );
 }
